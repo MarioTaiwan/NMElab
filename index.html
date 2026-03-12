@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="./annotorious.min.css">
     
     <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --success: #2e7d32; --unclear: #f57c00; --warning: #d32f2f; }
+        :root { --primary: #1a237e; --accent: #1e88e5; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; }
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; display: flex; height: 100vh; background: #f0f2f5; overflow: hidden; }
         
         #sidebar { width: 300px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
@@ -16,12 +16,13 @@
         .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; }
         .thumb-card:hover { border-color: var(--accent); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         
-        /* THE THREE VISUAL STATES */
+        /* STATE 1: DONE (GREEN) */
         .thumb-card.processed { border: 3px solid var(--success) !important; background: #e8f5e9; }
-        .thumb-card.processed::after { content: '✓ Done'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 
-        .thumb-card.unclear { border: 3px solid var(--unclear) !important; background: #fff3e0; }
-        .thumb-card.unclear::after { content: '? Unclear'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        /* STATE 2: UNCLEAR (ORANGE) */
+        .thumb-card.is-unclear { border: 3px solid var(--unclear) !important; background: #fff3e0; }
+        .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
 
         .thumb-card img { width: 100%; height: 110px; object-fit: cover; border-bottom: 1px solid #eee; pointer-events: none; }
         .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; color: #455a64; }
@@ -31,7 +32,7 @@
         .saving { color: #f57c00; animation: pulse 1.5s infinite; border-color: #f57c00 !important; }
 
         #workspace { display: flex; gap: 20px; align-items: flex-start; justify-content: center; height: 85vh; }
-        #canvas-box { position: relative; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; }
+        #canvas-box { position: relative; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-shrink: 1; display: none; }
         #current-img { max-width: 100%; max-height: 70vh; display: block; border-radius: 4px; user-select: none; }
         #input-panel { width: 340px; background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #cfd8dc; display: none; }
         
@@ -39,10 +40,6 @@
         .radio-option { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 14px; color: #37474f; padding: 8px; border-radius: 6px; }
         .radio-option:hover { background: #f8f9fa; }
 
-        #intro-overlay { text-align: center; max-width: 650px; background: #fff; padding: 40px; border-radius: 15px; border-top: 8px solid var(--primary); margin-top: 40px; }
-        .warning-text { color: var(--warning); font-weight: bold; margin: 25px 0; border: 2px dashed var(--warning); padding: 15px; border-radius: 8px; background: #fff8f8; line-height: 1.5; }
-        
-        .a9s-annotationlayer { pointer-events: all !important; cursor: crosshair !important; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
@@ -56,12 +53,6 @@
 <div id="main-container">
     <div id="status-bar">Connecting...</div>
     <div id="workspace">
-        <div id="intro-overlay">
-            <h1>NMElab Cleanup</h1>
-            <p>Thank you for helping identify the leftover samples in Jing's lab.</p>
-            <div class="warning-text">Wait for the orange pulse (Saving) to finish before switching images.</div>
-            <p id="loading-msg" style="color: #78909c;">Fetching progress...</p>
-        </div>
         <div id="canvas-box"></div>
         <div id="input-panel">
             <h3 style="margin-top:0; color:var(--primary)">Sample Status</h3>
@@ -83,44 +74,45 @@
     let currentActiveId = null;
 
     async function initGallery() {
-        const list = document.getElementById('thumb-list');
         const status = document.getElementById('status-bar');
         try {
             const res = await fetch(`${SCRIPT_URL}?imageId=ALL_SAMPLES`);
             const allData = await res.json();
             
-            const processed = new Set();
-            const unclear = new Set();
+            // Logic mapping: Sample ID -> Current Best Status
+            const statusMap = {};
 
             allData.forEach(d => {
                 if (d.type === "StatusUpdate") {
-                    if (d.body === "Toss everything" || d.body === "Keep some things") {
-                        processed.add(d.imageId);
-                    } else if (d.body === "Potentially useful" || d.body === "Unknown/Not mine") {
-                        unclear.add(d.imageId);
+                    // Decide priority: 'Done' always overrides 'Unclear'
+                    const isDone = (d.body === "Toss everything" || d.body === "Keep some things");
+                    if (isDone) {
+                        statusMap[d.imageId] = "done";
+                    } else if (!statusMap[d.imageId]) {
+                        statusMap[d.imageId] = "unclear";
                     }
                 }
             });
 
-            renderCards(processed, unclear);
+            renderCards(statusMap);
             status.innerText = "Gallery Ready";
-            document.getElementById('loading-msg').innerText = "← Select a sample.";
         } catch (e) {
-            renderCards(new Set(), new Set());
-            status.innerText = "Ready (Offline Mode)";
+            renderCards({});
+            status.innerText = "Ready (Offline)";
         }
     }
 
-    function renderCards(processed, unclear) {
+    function renderCards(statusMap) {
         const list = document.getElementById('thumb-list');
         list.innerHTML = ''; 
         for (let i = 1; i <= 57; i++) {
             const id = `Sample ${i}`;
             const card = document.createElement('div');
             card.id = `card-${i}`;
+            
             let stateClass = '';
-            if (processed.has(id)) stateClass = 'processed';
-            else if (unclear.has(id)) stateClass = 'unclear';
+            if (statusMap[id] === "done") stateClass = 'processed';
+            else if (statusMap[id] === "unclear") stateClass = 'is-unclear';
             
             card.className = 'thumb-card ' + stateClass;
             card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">${id}</div>`;
@@ -133,12 +125,11 @@
         currentActiveId = id; 
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
-        const intro = document.getElementById('intro-overlay');
         const panel = document.getElementById('input-panel');
 
-        intro.style.display = 'none'; canvasBox.style.display = 'block'; panel.style.display = 'block';
+        canvasBox.style.display = 'block'; panel.style.display = 'block';
         document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
-        status.innerText = `Loading ${id}...`; status.classList.remove("saving");
+        status.innerText = `Loading ${id}...`;
 
         if (anno) { try { anno.destroy(); } catch(e) {} anno = null; }
         canvasBox.innerHTML = ''; 
@@ -170,9 +161,14 @@
         const match = currentActiveId.match(/\d+/);
         if(match) {
             const card = document.getElementById(`card-${match[0]}`);
-            card.classList.remove('processed', 'unclear');
-            if (label === "Toss everything" || label === "Keep some things") card.classList.add('processed');
-            else card.classList.add('unclear');
+            card.classList.remove('processed', 'is-unclear');
+            
+            // Explicit check for the label text
+            if (label === "Toss everything" || label === "Keep some things") {
+                card.classList.add('processed');
+            } else {
+                card.classList.add('is-unclear');
+            }
         }
 
         const params = new URLSearchParams();
@@ -189,7 +185,7 @@
         params.append('imageId', id);
         params.append('annotation', JSON.stringify(content));
         await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: params.toString() });
-        status.innerText = "Annotation Saved!"; status.classList.remove("saving");
+        status.innerText = "Saved!"; status.classList.remove("saving");
     }
 
     initGallery();
