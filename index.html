@@ -6,22 +6,42 @@
     <title>MYlab Research Gallery</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.min.css">
     <style>
-        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; }
-        #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; }
-        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; display: block; }
-        .thumb-card:hover { border-color: #2196f3; background: #f0f7ff; }
-        .thumb-card img { width: 100%; height: 140px; object-fit: cover; }
-        .thumb-info { padding: 10px; font-size: 14px; text-align: center; font-weight: bold; color: #455a64; }
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; overflow: hidden; }
         
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
-        #status-bar { margin-bottom: 20px; padding: 10px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; }
-        #canvas-box { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        
-        /* FIX: Ensures the drawing layer is active and ignores invisible overlaps */
-        .a9s-annotationlayer { cursor: crosshair !important; pointer-events: all !important; }
+        #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; z-index: 10; }
+        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; }
+        .thumb-card:hover { border-color: #2196f3; }
+        .thumb-card img { width: 100%; height: 120px; object-fit: cover; pointer-events: none; }
+        .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; }
 
-        /* Debug Panel */
-        #debug-log { position: absolute; bottom: 0; left: 300px; right: 0; background: #263238; color: #81c784; font-family: monospace; font-size: 11px; padding: 5px 15px; max-height: 60px; overflow-y: auto; }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow: hidden; }
+        #status-bar { margin-bottom: 15px; padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        
+        /* CRITICAL: The box must be relative for the annotation layer to attach correctly */
+        #canvas-box { 
+            position: relative; 
+            background: white; 
+            padding: 10px; 
+            border-radius: 8px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            display: inline-block; /* Wraps tightly around the image */
+        }
+
+        #current-img { 
+            max-width: 100%; 
+            max-height: 75vh; 
+            display: block; 
+            user-select: none; 
+            -webkit-user-drag: none;
+        }
+
+        /* FORCE INTERACTION: Ensures the SVG layer captures your mouse */
+        .a9s-annotationlayer {
+            pointer-events: all !important;
+            cursor: crosshair !important;
+        }
+
+        .instructions { color: #78909c; font-size: 13px; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
@@ -35,82 +55,67 @@
     <div id="status-bar">Select a sample to begin</div>
     <div id="canvas-box">
         </div>
-    <div id="debug-log">System initialized. Waiting for selection...</div>
+    <div class="instructions">
+        <b>How to annotate:</b> Click and <b>drag</b> your mouse to draw a box. <br>
+        The comment area will appear once you release the mouse.
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.all.min.js"></script>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvg5bavLy1vOyLh-BrLe6PiTfsJyqnnCi-XtVqhYrAOHragk54ciwsNrqAQsUMS0g/exec';
-    const FOLDER = 'images'; // Folder must be named 'images' (lowercase)
+    const FOLDER = 'images'; 
 
     let anno = null;
     let activeId = null;
 
-    function log(msg) {
-        const d = document.getElementById('debug-log');
-        d.innerHTML += `<br>> ${msg}`;
-        d.scrollTop = d.scrollHeight;
-    }
-
-    // --- 1. BUILD SIDEBAR (1 to 57) ---
+    // 1. GENERATE SIDEBAR
     const list = document.getElementById('thumb-list');
-    
     for (let i = 1; i <= 57; i++) {
-        const thumbUrl = `${FOLDER}/${i}a.jpg`;
-        const fullUrl = `${FOLDER}/${i}.jpg`;
-        const sampleId = `Sample ${i}`;
-
         const card = document.createElement('div');
         card.className = 'thumb-card';
         card.id = `card-${i}`;
-        card.innerHTML = `
-            <img src="${thumbUrl}" onerror="hideCard(${i}, '${thumbUrl}')">
-            <div class="thumb-info">${sampleId}</div>
-        `;
-        
-        card.onclick = () => selectImage(sampleId, fullUrl);
+        card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">Sample ${i}</div>`;
+        card.onclick = () => selectImage(`Sample ${i}`, `${FOLDER}/${i}.jpg`);
         list.appendChild(card);
     }
 
-    function hideCard(index, url) {
-        document.getElementById(`card-${index}`).style.display = 'none';
-        console.warn(`Missing image: ${url}`);
-    }
-
-    // --- 2. SELECT AND ANNOTATE ---
+    // 2. IMAGE SELECTION
     function selectImage(id, imgUrl) {
         activeId = id;
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
         
-        log(`Attempting to load full image: ${imgUrl}`);
         status.innerText = `Loading ${id}...`;
         
-        if (anno) anno.destroy();
-        
-        // Re-inject a clean image element to fix the "cannot highlight" bug
-        canvasBox.innerHTML = `<img id="current-img" src="${imgUrl}" style="max-width:100%; max-height:75vh; display:block;">`;
+        // Completely clear old instance and HTML to prevent "Ghost Layers"
+        if (anno) {
+            anno.destroy();
+            anno = null;
+        }
+        canvasBox.innerHTML = `<img id="current-img" src="${imgUrl}">`;
         
         const img = document.getElementById('current-img');
 
         img.onload = () => {
-            log(`Success! Image ${id} rendered.`);
-            anno = Annotorious.init({ image: 'current-img' });
+            // INITIALIZE ANNOTORIOUS
+            anno = Annotorious.init({ 
+                image: 'current-img',
+                widgets: [ 'COMMENT' ] // Explicitly ensure the comment widget is active
+            });
 
-            // Load Existing
+            // LOAD DATA
             fetch(`${SCRIPT_URL}?imageId=${activeId}`)
                 .then(r => r.json())
                 .then(data => {
                     anno.setAnnotations(data);
-                    status.innerText = `Viewing ${id} (${data.length} annotations)`;
-                    log(`Loaded ${data.length} annotations from Sheets.`);
+                    status.innerText = `Ready: ${id} (${data.length} marks)`;
                 });
 
-            // Save New
+            // SAVE DATA
             anno.on('createAnnotation', async (annotation) => {
-                status.innerText = "Saving...";
-                log("Sending new annotation to Google...");
+                status.innerText = "Saving to Google Sheets...";
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -118,13 +123,11 @@
                     body: JSON.stringify({ imageId: activeId, annotation: annotation })
                 });
                 status.innerText = "Saved!";
-                log("Save confirmed.");
             });
         };
 
         img.onerror = () => {
-            log(`ERROR: Could not find ${imgUrl}`);
-            status.innerText = `Error: Image not found at ${imgUrl}`;
+            status.innerText = `Error: Missing file ${imgUrl}`;
         };
     }
 </script>
