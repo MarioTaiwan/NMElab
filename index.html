@@ -8,135 +8,146 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; }
         
-        /* Sidebar Styles */
         #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
         .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; transition: 0.2s; }
         .thumb-card:hover { border-color: #2196f3; background: #f0f7ff; }
         .thumb-card img { width: 100%; height: 140px; object-fit: cover; border-bottom: 1px solid #eee; }
         .thumb-info { padding: 10px; font-size: 14px; font-weight: 600; color: #455a64; text-align: center; }
 
-        /* Main Viewer Styles */
         #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         #status-bar { margin-bottom: 20px; padding: 10px 20px; border-radius: 30px; background: #fff; font-size: 14px; color: #546e7a; border: 1px solid #cfd8dc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        #canvas-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 95%; position: relative; }
-        #closeup-image { max-width: 100%; max-height: 75vh; border-radius: 4px; display: block; }
         
-        /* Loading Spinner */
-        .loading-text { font-style: italic; color: #90a4ae; }
+        #canvas-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 95%; }
+        /* Image styling moved inline to ensure clean recreation */
     </style>
 </head>
 <body>
 
 <div id="sidebar">
     <h2 style="margin-top:0; color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 10px;">Sample Gallery</h2>
-    <div id="thumb-list"></div>
+    <div id="thumb-list"><p style="color:#666; font-style:italic;">Scanning folder for images...</p></div>
 </div>
 
 <div id="main-container">
     <div id="status-bar">Select a sample to begin annotating</div>
-    <div id="canvas-box">
-        <img id="closeup-image" src="" alt="">
-    </div>
+    <div id="canvas-box"></div>
     <p style="color: #90a4ae; margin-top: 15px; font-size: 0.9em;">Click and drag to highlight regions. Annotations save automatically.</p>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.all.min.js"></script>
 
 <script>
-    // 1. CONFIGURATION
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvg5bavLy1vOyLh-BrLe6PiTfsJyqnnCi-XtVqhYrAOHragk54ciwsNrqAQsUMS0g/exec';
-    
-    // NOTE: Rename your folder to 'images' to ensure this works on GitHub
-    const IMAGE_FOLDER = 'images'; 
+    const IMAGE_FOLDER = 'image folder'; 
 
     let anno = null;
     let activeId = null;
 
-    // 2. GENERATE IMAGE LIST (1 to 57)
-    const myImages = [];
-    for (let i = 1; i <= 57; i++) {
-        myImages.push({
-            id: `Sample ${i}`,
-            thumb: `${IMAGE_FOLDER}/${i}a.jpg`, // Zoomed out: 1a.jpg
-            full: `${IMAGE_FOLDER}/${i}.jpg`    // Close up: 1.jpg
+    // --- 1. DYNAMIC AUTO-DISCOVERY OF IMAGES ---
+    async function discoverImages() {
+        const myImages = [];
+        let i = 1;
+        
+        while (i <= 200) { // Safety limit so it doesn't loop infinitely
+            // encodeURI handles the space in "image folder"
+            const fullUrl = encodeURI(`${IMAGE_FOLDER}/${i}.jpg`);
+            const thumbUrl = encodeURI(`${IMAGE_FOLDER}/${i}a.jpg`);
+
+            // Ping the image to see if it exists
+            const exists = await new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = fullUrl;
+            });
+
+            if (exists) {
+                myImages.push({ id: `Sample ${i}`, thumb: thumbUrl, full: fullUrl });
+                i++;
+            } else {
+                break; // Stop scanning the moment an image number is missing
+            }
+        }
+        buildSidebar(myImages);
+    }
+
+    // --- 2. BUILD THE SIDEBAR ---
+    function buildSidebar(images) {
+        const list = document.getElementById('thumb-list');
+        list.innerHTML = ''; // Clear the "Scanning..." message
+        
+        if (images.length === 0) {
+            list.innerHTML = '<p style="color:red;">No images found. Check folder name and .jpg extensions.</p>';
+            return;
+        }
+
+        images.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'thumb-card';
+            card.innerHTML = `
+                <img src="${item.thumb}" alt="Missing ${item.thumb}">
+                <div class="thumb-info">${item.id}</div>
+            `;
+            card.onclick = () => selectImage(item);
+            list.appendChild(card);
         });
     }
 
-    // 3. BUILD THE SIDEBAR UI
-    const list = document.getElementById('thumb-list');
-    myImages.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'thumb-card';
-        card.innerHTML = `
-            <img src="${item.thumb}" alt="Loading..." onerror="this.src='https://placehold.co/200x140?text=Image+Not+Found'">
-            <div class="thumb-info">${item.id}</div>
-        `;
-        card.onclick = () => selectImage(item);
-        list.appendChild(card);
-    });
-
-    // 4. SELECTION AND ANNOTATION LOGIC
+    // --- 3. BULLETPROOF ANNOTORIOUS INIT ---
     async function selectImage(item) {
         activeId = item.id;
-        const imgElement = document.getElementById('closeup-image');
         const status = document.getElementById('status-bar');
+        const canvasBox = document.getElementById('canvas-box');
         
         status.innerText = `🔄 Syncing annotations for ${activeId}...`;
         
-        // Destroy previous instance to clear memory and overlay
+        // DESTROY old instance and COMPLETELY CLEAR the HTML container
         if (anno) {
             anno.destroy();
             anno = null;
         }
+        canvasBox.innerHTML = '<img id="closeup-image" style="max-width: 100%; max-height: 75vh; border-radius: 4px; display: block;">';
         
-        // Load the new close-up image
-        imgElement.src = item.full;
+        const imgElement = document.getElementById('closeup-image');
 
+        // Only initialize Annotorious AFTER the raw image has fully rendered
         imgElement.onload = () => {
-            // Initialize Annotorious on the new image
             anno = Annotorious.init({ image: 'closeup-image' });
             
-            // FETCH existing annotations from Google Sheet
+            // Fetch existing data
             fetch(`${SCRIPT_URL}?imageId=${activeId}`)
                 .then(r => r.json())
                 .then(data => {
                     anno.setAnnotations(data);
-                    status.innerText = `✅ ${activeId}: ${data.length} existing annotations loaded.`;
+                    status.innerText = `✅ Viewing ${activeId} (${data.length} existing annotations)`;
                 })
                 .catch(err => {
-                    console.error("Fetch Error:", err);
-                    status.innerText = "⚠️ Error loading data from Google Sheets.";
+                    status.innerText = "⚠️ Error loading existing data.";
                 });
 
-            // SAVE new annotations automatically
+            // Save new data
             anno.on('createAnnotation', async (annotation) => {
-                status.innerText = "💾 Saving to cloud...";
-                
+                status.innerText = "💾 Saving to Google Sheets...";
                 try {
-                    // mode: 'no-cors' allows us to send data without a complex security handshake
                     await fetch(SCRIPT_URL, {
                         method: 'POST',
-                        mode: 'no-cors', 
+                        mode: 'no-cors',
                         headers: { 'Content-Type': 'text/plain' },
-                        body: JSON.stringify({ 
-                            imageId: activeId, 
-                            annotation: annotation 
-                        })
+                        body: JSON.stringify({ imageId: activeId, annotation: annotation })
                     });
                     status.innerText = "✅ Annotation saved!";
                 } catch (e) {
-                    console.error("Save Error:", e);
-                    status.innerText = "❌ Error saving. Check connection.";
+                    status.innerText = "❌ Connection Error.";
                 }
             });
         };
 
-        // Handle image load error
-        imgElement.onerror = () => {
-            status.innerText = `❌ Error: Could not find ${item.full}`;
-            if (anno) anno.destroy();
-        };
+        // Trigger the load
+        imgElement.src = item.full;
     }
+
+    // Start the scanning process when the page loads
+    discoverImages();
 </script>
 
 </body>
