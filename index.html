@@ -8,60 +8,74 @@
     <style>
         body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; }
         #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; }
-        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; }
-        .thumb-card:hover { border-color: #2196f3; }
+        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; display: block; }
+        .thumb-card:hover { border-color: #2196f3; background: #f0f7ff; }
         .thumb-card img { width: 100%; height: 140px; object-fit: cover; }
-        .thumb-info { padding: 10px; font-size: 14px; text-align: center; font-weight: bold; }
+        .thumb-info { padding: 10px; font-size: 14px; text-align: center; font-weight: bold; color: #455a64; }
         
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        #status-bar { margin-bottom: 20px; padding: 10px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; }
+        #status-bar { margin-bottom: 20px; padding: 10px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; }
         #canvas-box { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
         
-        /* Ensures the drawing layer is visible and active */
-        .a9s-annotationlayer { cursor: crosshair !important; }
+        /* FIX: Ensures the drawing layer is active and ignores invisible overlaps */
+        .a9s-annotationlayer { cursor: crosshair !important; pointer-events: all !important; }
+
+        /* Debug Panel */
+        #debug-log { position: absolute; bottom: 0; left: 300px; right: 0; background: #263238; color: #81c784; font-family: monospace; font-size: 11px; padding: 5px 15px; max-height: 60px; overflow-y: auto; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2 style="margin-top:0;">Gallery</h2>
+    <h2 style="margin-top:0; color: #1a237e;">Samples</h2>
     <div id="thumb-list"></div>
 </div>
 
 <div id="main-container">
     <div id="status-bar">Select a sample to begin</div>
-    <div id="canvas-box"></div>
+    <div id="canvas-box">
+        </div>
+    <div id="debug-log">System initialized. Waiting for selection...</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.all.min.js"></script>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvg5bavLy1vOyLh-BrLe6PiTfsJyqnnCi-XtVqhYrAOHragk54ciwsNrqAQsUMS0g/exec';
-    
-    // Automatically handles the folder path whether local or on GitHub
-    const folderPath = 'images';
+    const FOLDER = 'images'; // Folder must be named 'images' (lowercase)
 
     let anno = null;
     let activeId = null;
+
+    function log(msg) {
+        const d = document.getElementById('debug-log');
+        d.innerHTML += `<br>> ${msg}`;
+        d.scrollTop = d.scrollHeight;
+    }
 
     // --- 1. BUILD SIDEBAR (1 to 57) ---
     const list = document.getElementById('thumb-list');
     
     for (let i = 1; i <= 57; i++) {
-        const thumbUrl = `${folderPath}/${i}a.jpg`;
-        const fullUrl = `${folderPath}/${i}.jpg`;
+        const thumbUrl = `${FOLDER}/${i}a.jpg`;
+        const fullUrl = `${FOLDER}/${i}.jpg`;
         const sampleId = `Sample ${i}`;
 
         const card = document.createElement('div');
         card.className = 'thumb-card';
         card.id = `card-${i}`;
         card.innerHTML = `
-            <img src="${thumbUrl}" onerror="document.getElementById('card-${i}').style.display='none'">
+            <img src="${thumbUrl}" onerror="hideCard(${i}, '${thumbUrl}')">
             <div class="thumb-info">${sampleId}</div>
         `;
         
         card.onclick = () => selectImage(sampleId, fullUrl);
         list.appendChild(card);
+    }
+
+    function hideCard(index, url) {
+        document.getElementById(`card-${index}`).style.display = 'none';
+        console.warn(`Missing image: ${url}`);
     }
 
     // --- 2. SELECT AND ANNOTATE ---
@@ -70,16 +84,18 @@
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
         
+        log(`Attempting to load full image: ${imgUrl}`);
         status.innerText = `Loading ${id}...`;
         
         if (anno) anno.destroy();
         
-        // Wipe and recreate the image element to reset the drawing layer
-        canvasBox.innerHTML = `<img id="current-img" src="${imgUrl}" style="max-width:100%; max-height:75vh;">`;
+        // Re-inject a clean image element to fix the "cannot highlight" bug
+        canvasBox.innerHTML = `<img id="current-img" src="${imgUrl}" style="max-width:100%; max-height:75vh; display:block;">`;
         
         const img = document.getElementById('current-img');
 
         img.onload = () => {
+            log(`Success! Image ${id} rendered.`);
             anno = Annotorious.init({ image: 'current-img' });
 
             // Load Existing
@@ -88,11 +104,13 @@
                 .then(data => {
                     anno.setAnnotations(data);
                     status.innerText = `Viewing ${id} (${data.length} annotations)`;
+                    log(`Loaded ${data.length} annotations from Sheets.`);
                 });
 
             // Save New
             anno.on('createAnnotation', async (annotation) => {
                 status.innerText = "Saving...";
+                log("Sending new annotation to Google...");
                 await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
@@ -100,11 +118,13 @@
                     body: JSON.stringify({ imageId: activeId, annotation: annotation })
                 });
                 status.innerText = "Saved!";
+                log("Save confirmed.");
             });
         };
 
         img.onerror = () => {
-            status.innerText = `Error: Could not find ${imgUrl}`;
+            log(`ERROR: Could not find ${imgUrl}`);
+            status.innerText = `Error: Image not found at ${imgUrl}`;
         };
     }
 </script>
