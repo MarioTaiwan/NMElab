@@ -6,14 +6,19 @@
     <title>NMElab Cleanup</title>
     <link rel="stylesheet" href="./annotorious.min.css">
     <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --warning: #d32f2f; }
+        :root { --primary: #1a237e; --accent: #1e88e5; --success: #2e7d32; --warning: #d32f2f; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #f0f2f5; overflow: hidden; }
         
         #sidebar { width: 300px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
         #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.4rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; }
         
-        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
+        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; }
         .thumb-card:hover { border-color: var(--accent); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        
+        /* THE GREEN BORDER FIX */
+        .thumb-card.processed { border: 3px solid var(--success) !important; background: #e8f5e9; }
+        .thumb-card.processed::after { content: '✓ Done'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+
         .thumb-card img { width: 100%; height: 110px; object-fit: cover; border-bottom: 1px solid #eee; }
         .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; color: #455a64; }
 
@@ -22,21 +27,16 @@
         .saving { color: #f57c00; animation: pulse 1.5s infinite; border-color: #f57c00 !important; }
 
         #workspace { display: flex; gap: 20px; align-items: flex-start; justify-content: center; height: 85vh; }
-        
         #canvas-box { position: relative; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); flex-shrink: 1; display: none; }
         #current-img { max-width: 100%; max-height: 70vh; display: block; border-radius: 4px; }
         
         #input-panel { width: 340px; background: #fff; padding: 25px; border-radius: 12px; border: 1px solid #cfd8dc; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; }
-        #input-panel h3 { margin-top: 0; font-size: 1.1rem; color: var(--primary); margin-bottom: 15px; }
-        
         .radio-group { display: flex; flex-direction: column; gap: 14px; }
-        .radio-option { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 14px; line-height: 1.4; color: #37474f; padding: 8px; border-radius: 6px; transition: 0.1s; }
+        .radio-option { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; font-size: 14px; line-height: 1.4; color: #37474f; padding: 8px; border-radius: 6px; }
         .radio-option:hover { background: #f8f9fa; }
-        .radio-option input { margin-top: 3px; transform: scale(1.2); }
 
         #intro-overlay { text-align: center; max-width: 650px; background: #fff; padding: 40px; border-radius: 15px; border-top: 8px solid var(--primary); box-shadow: 0 20px 40px rgba(0,0,0,0.1); margin-top: 40px; }
-        #intro-overlay h1 { color: var(--primary); margin-bottom: 20px; }
-        .warning-text { color: var(--warning); font-weight: bold; margin: 25px 0; border: 2px dashed var(--warning); padding: 15px; border-radius: 8px; line-height: 1.5; background: #fff8f8; }
+        .warning-text { color: var(--warning); font-weight: bold; margin: 25px 0; border: 2px dashed var(--warning); padding: 15px; border-radius: 8px; background: #fff8f8; }
 
         .a9s-annotationlayer { pointer-events: all !important; cursor: crosshair !important; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -50,68 +50,82 @@
 </div>
 
 <div id="main-container">
-    <div id="status-bar">System Ready</div>
+    <div id="status-bar">Syncing lab data...</div>
 
     <div id="workspace">
         <div id="intro-overlay">
             <h1>NMElab Cleanup</h1>
-            <p>Thank you very much for your help in identifying the leftover samples in Jing's lab.</p>
+            <p>Thank you for your help identifying leftover samples in Jing's lab.</p>
             <div class="warning-text">
-                This page will collect your input but is a little slow, so please wait for the save confirmation (orange pulse) before going to the next picture.
+                Please wait for the orange pulse (Saving) to finish before moving to the next sample.
             </div>
-            <p style="color: #78909c;">← Select a sample from the gallery on the left to begin.</p>
+            <p id="loading-msg">Fetching progress from Sheets...</p>
         </div>
-
         <div id="canvas-box"></div>
-
         <div id="input-panel">
-            <h3>Sample Status</h3>
+            <h3 style="margin-top:0; color:var(--primary)">Sample Status</h3>
             <div class="radio-group">
-                <label class="radio-option">
-                    <input type="radio" name="status" value="toss" onclick="saveStatus('Toss everything')">
-                    <span>I am the owner of this drawer and everything can be tossed.</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="status" value="keep" onclick="saveStatus('Keep some things')">
-                    <span>I am the owner and still need some things.</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="status" value="useful" onclick="saveStatus('Potentially useful')">
-                    <span>I recognize this item, which might still be useful.</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="status" value="unknown" onclick="saveStatus('Unknown/Not mine')">
-                    <span>I don't know anything about this.</span>
-                </label>
+                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Toss everything')"><span>I am the owner and everything can be tossed.</span></label>
+                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Keep some things')"><span>I am the owner and still need some things.</span></label>
+                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Potentially useful')"><span>I recognize this, might be useful.</span></label>
+                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Unknown/Not mine')"><span>I don't know anything about this.</span></label>
             </div>
-            <p style="font-size: 11px; color: #90a4ae; margin-top: 25px; border-top: 1px solid #eee; padding-top: 10px;">
-                Drawn annotations are saved automatically as you make them.
-            </p>
         </div>
     </div>
 </div>
 
 <script src="./annotorious.min.js"></script>
-
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC_3344Rdavfr74dFD8TkTt68TmWFDJv-vYJpaivJEzs0MtzmdBSdn8E9JHXUkINLF/exec';
     const FOLDER = './images'; 
     let anno = null;
     let activeId = null;
 
-    function runGalleryInit() {
+    // 1. SCAN SHEETS FOR PROGRESS & BUILD GALLERY
+    async function initGallery() {
         const list = document.getElementById('thumb-list');
-        for (let i = 1; i <= 57; i++) {
-            const card = document.createElement('div');
-            card.className = 'thumb-card';
-            card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">Sample ${i}</div>`;
-            card.onclick = () => selectImage(`Sample ${i}`, `${FOLDER}/${i}.jpg`);
-            list.appendChild(card);
+        const status = document.getElementById('status-bar');
+        const loadMsg = document.getElementById('loading-msg');
+
+        // Fetch ALL data once to find which IDs have "StatusUpdate"
+        try {
+            const response = await fetch(`${SCRIPT_URL}?imageId=ALL_SAMPLES`);
+            const allData = await response.json();
+            
+            // Create a Set of Sample IDs that have at least one StatusUpdate
+            const processedIds = new Set(
+                allData.filter(d => d.type === "StatusUpdate").map(d => d.imageId)
+            );
+
+            for (let i = 1; i <= 57; i++) {
+                const id = `Sample ${i}`;
+                const card = document.createElement('div');
+                card.id = `card-${i}`;
+                card.className = 'thumb-card' + (processedIds.has(id) ? ' processed' : '');
+                card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">${id}</div>`;
+                card.onclick = () => selectImage(id, `${FOLDER}/${i}.jpg`, i);
+                list.appendChild(card);
+            }
+            status.innerText = "Gallery Ready";
+            loadMsg.innerText = "← Select a sample to begin.";
+        } catch (e) {
+            console.error(e);
+            // Fallback: build without borders if Sheet is empty/offline
+            for (let i = 1; i <= 57; i++) {
+                const card = document.createElement('div');
+                card.id = `card-${i}`;
+                card.className = 'thumb-card';
+                card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">Sample ${i}</div>`;
+                card.onclick = () => selectImage(`Sample ${i}`, `${FOLDER}/${i}.jpg`, i);
+                list.appendChild(card);
+            }
+            status.innerText = "Ready (Offline Mode)";
         }
     }
 
-    function selectImage(id, imgUrl) {
+    function selectImage(id, imgUrl, index) {
         activeId = id;
+        activeIndex = index;
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
         const intro = document.getElementById('intro-overlay');
@@ -120,8 +134,6 @@
         intro.style.display = 'none';
         canvasBox.style.display = 'block';
         panel.style.display = 'block';
-        
-        // Reset radio buttons for new image
         document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
 
         status.innerText = `Loading ${id}...`;
@@ -129,23 +141,19 @@
 
         if (anno) { anno.destroy(); anno = null; }
         canvasBox.innerHTML = ''; 
-
         const img = document.createElement('img');
         img.id = "current-img";
         img.onload = () => {
             setTimeout(() => {
                 try {
                     anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
-                    
                     fetch(`${SCRIPT_URL}?imageId=${id}`)
                         .then(r => r.json())
                         .then(data => {
-                            // Filter out StatusUpdates from the drawing layer
                             const drawings = data.filter(d => d.type !== "StatusUpdate");
                             anno.setAnnotations(drawings);
-                            status.innerText = `Ready: ${id}`;
+                            status.innerText = `Viewing: ${id}`;
                         });
-
                     anno.on('createAnnotation', (a) => syncToSheet(id, a));
                 } catch (e) { console.error(e); }
             }, 200);
@@ -158,41 +166,32 @@
         const status = document.getElementById('status-bar');
         status.innerText = "Saving Annotation...";
         status.classList.add("saving");
-
         const params = new URLSearchParams();
         params.append('imageId', id);
         params.append('annotation', JSON.stringify(content));
-
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
-        });
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: params.toString() });
         status.innerText = "Annotation Saved!";
         status.classList.remove("saving");
     }
 
     async function saveStatus(label) {
         const status = document.getElementById('status-bar');
-        status.innerText = `Saving Choice: ${label}...`;
+        status.innerText = "Saving Choice...";
         status.classList.add("saving");
+
+        // Mark sidebar green immediately for feedback
+        document.getElementById(`card-${activeIndex}`).classList.add('processed');
 
         const params = new URLSearchParams();
         params.append('imageId', activeId);
-        params.append('annotation', JSON.stringify({type: "StatusUpdate", body: label}));
+        params.append('annotation', JSON.stringify({type: "StatusUpdate", body: label, imageId: activeId}));
 
-        await fetch(SCRIPT_URL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params.toString()
-        });
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: params.toString() });
         status.innerText = "Choice Saved!";
         status.classList.remove("saving");
     }
 
-    runGalleryInit();
+    initGallery();
 </script>
 </body>
 </html>
