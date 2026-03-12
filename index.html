@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MYlab Research Gallery</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.min.css">
     <style>
@@ -17,8 +18,11 @@
         /* Main Viewer Styles */
         #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
         #status-bar { margin-bottom: 20px; padding: 10px 20px; border-radius: 30px; background: #fff; font-size: 14px; color: #546e7a; border: 1px solid #cfd8dc; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        #canvas-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 95%; }
+        #canvas-box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); max-width: 95%; position: relative; }
         #closeup-image { max-width: 100%; max-height: 75vh; border-radius: 4px; display: block; }
+        
+        /* Loading Spinner */
+        .loading-text { font-style: italic; color: #90a4ae; }
     </style>
 </head>
 <body>
@@ -39,26 +43,101 @@
 <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.all.min.js"></script>
 
 <script>
+    // 1. CONFIGURATION
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyXvg5bavLy1vOyLh-BrLe6PiTfsJyqnnCi-XtVqhYrAOHragk54ciwsNrqAQsUMS0g/exec';
-    const IMAGE_FOLDER = 'image folder'; // Matches your folder name
+    
+    // NOTE: Rename your folder to 'images' to ensure this works on GitHub
+    const IMAGE_FOLDER = 'images'; 
 
     let anno = null;
     let activeId = null;
 
-    // --- 1. AUTOMATICALLY GENERATE IMAGE LIST (1 to 57) ---
+    // 2. GENERATE IMAGE LIST (1 to 57)
     const myImages = [];
     for (let i = 1; i <= 57; i++) {
         myImages.push({
             id: `Sample ${i}`,
-            thumb: `${IMAGE_FOLDER}/${i}a.jpg`, // Zoomed out (e.g. 57a.jpg)
-            full: `${IMAGE_FOLDER}/${i}1.jpg`   // Close up (e.g. 57.jpg - corrected logic below)
+            thumb: `${IMAGE_FOLDER}/${i}a.jpg`, // Zoomed out: 1a.jpg
+            full: `${IMAGE_FOLDER}/${i}.jpg`    // Close up: 1.jpg
         });
     }
 
-    // --- 2. BUILD THE SIDEBAR UI ---
+    // 3. BUILD THE SIDEBAR UI
     const list = document.getElementById('thumb-list');
     myImages.forEach(item => {
         const card = document.createElement('div');
         card.className = 'thumb-card';
-        // Note: Using the close-up filename 'i.jpg' as requested
-        const closeUpFilename = item.id.replace('Sample
+        card.innerHTML = `
+            <img src="${item.thumb}" alt="Loading..." onerror="this.src='https://placehold.co/200x140?text=Image+Not+Found'">
+            <div class="thumb-info">${item.id}</div>
+        `;
+        card.onclick = () => selectImage(item);
+        list.appendChild(card);
+    });
+
+    // 4. SELECTION AND ANNOTATION LOGIC
+    async function selectImage(item) {
+        activeId = item.id;
+        const imgElement = document.getElementById('closeup-image');
+        const status = document.getElementById('status-bar');
+        
+        status.innerText = `🔄 Syncing annotations for ${activeId}...`;
+        
+        // Destroy previous instance to clear memory and overlay
+        if (anno) {
+            anno.destroy();
+            anno = null;
+        }
+        
+        // Load the new close-up image
+        imgElement.src = item.full;
+
+        imgElement.onload = () => {
+            // Initialize Annotorious on the new image
+            anno = Annotorious.init({ image: 'closeup-image' });
+            
+            // FETCH existing annotations from Google Sheet
+            fetch(`${SCRIPT_URL}?imageId=${activeId}`)
+                .then(r => r.json())
+                .then(data => {
+                    anno.setAnnotations(data);
+                    status.innerText = `✅ ${activeId}: ${data.length} existing annotations loaded.`;
+                })
+                .catch(err => {
+                    console.error("Fetch Error:", err);
+                    status.innerText = "⚠️ Error loading data from Google Sheets.";
+                });
+
+            // SAVE new annotations automatically
+            anno.on('createAnnotation', async (annotation) => {
+                status.innerText = "💾 Saving to cloud...";
+                
+                try {
+                    // mode: 'no-cors' allows us to send data without a complex security handshake
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', 
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({ 
+                            imageId: activeId, 
+                            annotation: annotation 
+                        })
+                    });
+                    status.innerText = "✅ Annotation saved!";
+                } catch (e) {
+                    console.error("Save Error:", e);
+                    status.innerText = "❌ Error saving. Check connection.";
+                }
+            });
+        };
+
+        // Handle image load error
+        imgElement.onerror = () => {
+            status.innerText = `❌ Error: Could not find ${item.full}`;
+            if (anno) anno.destroy();
+        };
+    }
+</script>
+
+</body>
+</html>
