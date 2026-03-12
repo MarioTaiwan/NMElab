@@ -6,61 +6,35 @@
     <title>Research Annotation Gallery</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.min.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; overflow: hidden; }
-        
-        /* Sidebar Styling */
-        #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; z-index: 10; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; transition: 0.2s; }
-        .thumb-card:hover { border-color: #2196f3; background: #f0f7ff; }
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; overflow: hidden; }
+        #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; z-index: 10; }
+        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; overflow: hidden; }
         .thumb-card img { width: 100%; height: 120px; object-fit: cover; pointer-events: none; }
-        .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; color: #455a64; }
+        .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; }
 
-        /* Main Viewer Area */
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow: hidden; }
-        #status-bar { margin-bottom: 15px; padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: #263238; }
-        
-        #canvas-box { 
-            position: relative; 
-            background: white; 
-            padding: 10px; 
-            border-radius: 8px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            display: inline-block; 
-        }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow: hidden; position: relative; }
+        #status-bar { margin-bottom: 15px; padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; z-index: 20; }
+        #canvas-box { position: relative; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        #current-img { max-width: 100%; max-height: 70vh; display: block; }
 
-        #current-img { 
-            max-width: 100%; 
-            max-height: 70vh; 
-            display: block; 
-            user-select: none; 
-            -webkit-user-drag: none;
-        }
+        /* The "Visible Console" for debugging */
+        #debug-box { position: absolute; bottom: 10px; right: 10px; width: 350px; height: 150px; background: #263238; color: #81c784; padding: 10px; font-family: monospace; font-size: 11px; overflow-y: auto; border-radius: 5px; z-index: 100; opacity: 0.9; }
+        .err { color: #ff5252; }
 
-        /* FORCE INTERACTION: Ensures the drawing layer is responsive */
-        .a9s-annotationlayer {
-            pointer-events: all !important;
-            cursor: crosshair !important;
-        }
-
-        .instructions { color: #78909c; font-size: 13px; margin-top: 15px; text-align: center; line-height: 1.5; }
-        .hint { color: #2196f3; font-weight: bold; }
+        .a9s-annotationlayer { pointer-events: all !important; cursor: crosshair !important; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2 style="margin-top:0; color: #1a237e; border-bottom: 2px solid #e8eaf6; padding-bottom: 10px;">Gallery</h2>
+    <h2 style="margin-top:0;">Gallery</h2>
     <div id="thumb-list"></div>
 </div>
 
 <div id="main-container">
-    <div id="status-bar">Select a sample from the gallery to begin</div>
-    <div id="canvas-box">
-        </div>
-    <div class="instructions">
-        <span class="hint">Click and drag</span> to draw a box around features. <br>
-        A comment box will appear once you release the mouse button.
-    </div>
+    <div id="status-bar">Select a sample to begin</div>
+    <div id="canvas-box"></div>
+    <div id="debug-box">System Initialized...</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious@2.7.2/dist/annotorious.all.min.js"></script>
@@ -72,89 +46,96 @@
     let anno = null;
     let activeId = null;
 
-    // 1. GENERATE SIDEBAR (Samples 1 to 57)
+    function debug(msg, isError = false) {
+        const box = document.getElementById('debug-box');
+        const span = document.createElement('div');
+        if(isError) span.className = 'err';
+        span.innerText = `> ${msg}`;
+        box.appendChild(span);
+        box.scrollTop = box.scrollHeight;
+    }
+
+    // 1. GENERATE SIDEBAR
     const list = document.getElementById('thumb-list');
     for (let i = 1; i <= 57; i++) {
         const card = document.createElement('div');
         card.className = 'thumb-card';
-        card.id = `card-${i}`;
-        // Uses 'ia.jpg' for thumbnails and hides the card if the file is missing
-        card.innerHTML = `
-            <img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'">
-            <div class="thumb-info">Sample ${i}</div>
-        `;
+        card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">Sample ${i}</div>`;
         card.onclick = () => selectImage(`Sample ${i}`, `${FOLDER}/${i}.jpg`);
         list.appendChild(card);
     }
 
-    // 2. IMAGE SELECTION & ANNOTATION LOGIC
+    // 2. IMAGE SELECTION
     function selectImage(id, imgUrl) {
         activeId = id;
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
         
-        status.innerText = `Initializing ${id}...`;
+        debug(`Selecting ${id}...`);
+        status.innerText = `Loading ${id}...`;
         
-        // Destroy existing Annotorious instance to prevent layer stacking
         if (anno) {
+            debug("Destroying old Annotorious instance");
             anno.destroy();
             anno = null;
         }
 
-        // Wipe container and create a fresh image element
         canvasBox.innerHTML = ''; 
         const newImg = document.createElement('img');
         newImg.id = "current-img";
         
-        // This handler triggers once the browser has actually loaded the image data
         newImg.onload = function() {
-            // Small timeout allows the browser to compute the final layout dimensions
+            debug(`Image ${id} loaded into DOM. Width: ${newImg.naturalWidth}px`);
+            
+            // Check if library is actually loaded
+            if (typeof Annotorious === 'undefined') {
+                debug("CRITICAL ERROR: Annotorious library not found!", true);
+                return;
+            }
+
             setTimeout(() => {
                 try {
+                    debug("Initializing Annotorious...");
                     anno = Annotorious.init({ 
                         image: 'current-img',
                         widgets: ['COMMENT']
                     });
+                    debug("Annotorious initialized successfully.");
 
-                    // FETCH existing data from Google Sheets
+                    status.innerText = `Fetching annotations for ${id}...`;
                     fetch(`${SCRIPT_URL}?imageId=${activeId}`)
                         .then(r => r.json())
                         .then(data => {
                             anno.setAnnotations(data);
-                            status.innerText = `Ready: ${id} (${data.length} annotations loaded)`;
-                        });
+                            status.innerText = `Ready: ${id} (${data.length} annotations)`;
+                            debug(`Data loaded: ${data.length} records.`);
+                        })
+                        .catch(e => debug("Fetch error: " + e.message, true));
 
-                    // SAVE new annotations automatically
-                    anno.on('createAnnotation', async (annotation) => {
-                        status.innerText = "Syncing with Sheets...";
-                        await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: { 'Content-Type': 'text/plain' },
-                            body: JSON.stringify({ imageId: activeId, annotation: annotation })
-                        });
-                        status.innerText = "Changes saved!";
+                    anno.on('createAnnotation', async (a) => {
+                        status.innerText = "Saving...";
+                        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ imageId: activeId, annotation: a }) });
+                        status.innerText = "Saved!";
+                        debug("Saved new annotation.");
                     });
 
                 } catch (err) {
-                    console.error("Initialization Error:", err);
-                    status.innerText = "Error: Interaction layer could not be attached.";
+                    debug("JS EXCEPTION: " + err.message, true);
+                    status.innerText = "Error: See debug console.";
                 }
-            }, 150);
+            }, 300); // 300ms delay to ensure browser settles
         };
-
-        // Attach image to the DOM and start the loading process
-        canvasBox.appendChild(newImg);
-        newImg.src = imgUrl;
-
-        // Force onload if the image is already in the browser cache
-        if (newImg.complete) {
-            newImg.onload();
-        }
 
         newImg.onerror = () => {
-            status.innerText = `Error: Could not find image at ${imgUrl}`;
+            debug(`LOAD ERROR: File not found at ${imgUrl}`, true);
+            status.innerText = "Error: File 404";
         };
+
+        canvasBox.appendChild(newImg);
+        newImg.src = imgUrl;
+        
+        // Handle cache
+        if (newImg.complete) newImg.onload();
     }
 </script>
 </body>
