@@ -9,40 +9,27 @@
     
     <style>
         body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #eceff1; overflow: hidden; }
-        
         #sidebar { width: 300px; background: #fff; border-right: 1px solid #cfd8dc; overflow-y: auto; padding: 20px; z-index: 10; }
-        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
-        .thumb-card:hover { border-color: #2196f3; background: #f0f7ff; }
+        .thumb-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 15px; cursor: pointer; }
         .thumb-card img { width: 100%; height: 120px; object-fit: cover; pointer-events: none; }
-        .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; color: #455a64; }
-
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; position: relative; overflow: hidden; }
-        #status-bar { margin-bottom: 15px; padding: 8px 25px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
+        .thumb-info { padding: 8px; font-size: 13px; text-align: center; font-weight: bold; }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow: hidden; }
+        #status-bar { margin-bottom: 15px; padding: 8px 25px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 14px; }
         #canvas-box { position: relative; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: inline-block; }
-        #current-img { max-width: 100%; max-height: 75vh; display: block; user-select: none; }
-
-        /* Ensuring the annotation layer responds to clicks and drags */
+        #current-img { max-width: 100%; max-height: 75vh; display: block; }
         .a9s-annotationlayer { pointer-events: all !important; cursor: crosshair !important; }
-        
-        .instructions { color: #78909c; font-size: 12px; margin-top: 15px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2 style="margin-top:0; color: #1a237e; font-size: 1.2em;">Sample Gallery</h2>
+    <h2 style="margin-top:0;">Sample Gallery</h2>
     <div id="thumb-list"></div>
 </div>
 
 <div id="main-container">
     <div id="status-bar">Select a sample to begin</div>
-    <div id="canvas-box">
-        </div>
-    <div class="instructions">
-        <b>Tip:</b> Click and <b>drag</b> to create a box. <br>
-        Release to type your observation.
-    </div>
+    <div id="canvas-box"></div>
 </div>
 
 <script src="annotorious.min.js"></script>
@@ -52,68 +39,66 @@
     const FOLDER = 'images'; 
     let anno = null;
 
-    // 1. Build the sidebar for Samples 1-57
+    // Check if library actually loaded from your root
+    window.onload = () => {
+        const status = document.getElementById('status-bar');
+        if (typeof Annotorious === 'undefined') {
+            status.innerHTML = "<b style='color:red'>Error: annotorious.min.js not found in root!</b>";
+        } else {
+            console.log("Annotorious Loaded Successfully from local root.");
+        }
+    };
+
+    // Sidebar
     const list = document.getElementById('thumb-list');
     for (let i = 1; i <= 57; i++) {
         const card = document.createElement('div');
         card.className = 'thumb-card';
-        // Hides card automatically if thumbnail (1a.jpg) is missing
-        card.innerHTML = `
-            <img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'">
-            <div class="thumb-info">Sample ${i}</div>
-        `;
+        card.innerHTML = `<img src="${FOLDER}/${i}a.jpg" onerror="this.parentElement.style.display='none'"><div class="thumb-info">Sample ${i}</div>`;
         card.onclick = () => selectImage(`Sample ${i}`, `${FOLDER}/${i}.jpg`);
         list.appendChild(card);
     }
 
-    // 2. Main interaction logic
     function selectImage(id, imgUrl) {
         const status = document.getElementById('status-bar');
         const canvasBox = document.getElementById('canvas-box');
-        
         status.innerText = `Loading ${id}...`;
 
-        // Clean up previous instance
-        if (anno) {
-            anno.destroy();
-            anno = null;
-        }
-
+        if (anno) { anno.destroy(); anno = null; }
         canvasBox.innerHTML = ''; 
+
         const img = document.createElement('img');
         img.id = "current-img";
-        
         img.onload = () => {
-            // Delay ensures the browser has calculated image dimensions (critical for the layer)
             setTimeout(() => {
                 try {
+                    // Initialize using the local library
                     anno = Annotorious.init({ 
                         image: img,
                         widgets: ['COMMENT']
                     });
 
-                    // LOAD: Retrieve data from Google Sheets
                     fetch(`${SCRIPT_URL}?imageId=${id}`)
                         .then(r => r.json())
                         .then(data => {
                             anno.setAnnotations(data);
-                            status.innerText = `Ready: ${id} (${data.length} annotations)`;
-                        })
-                        .catch(e => {
-                            status.innerText = `Ready: ${id} (Sync Offline)`;
-                            console.warn("Could not fetch data:", e);
+                            status.innerText = `Ready: ${id}`;
                         });
 
-                    // SAVE: Send new annotations to Google Sheets
                     anno.on('createAnnotation', async (a) => {
-                        status.innerText = "Saving to Database...";
-                        await fetch(SCRIPT_URL, { 
-                            method: 'POST', 
-                            mode: 'no-cors', 
-                            body: JSON.stringify({ imageId: id, annotation: a }) 
-                        });
+                        status.innerText = "Saving...";
+                        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ imageId: id, annotation: a }) });
                         status.innerText = "Saved!";
                     });
                 } catch (err) {
-                    status.innerText = "Error initializing interaction layer.";
+                    status.innerText = "Interaction error.";
                     console.error(err);
+                }
+            }, 150);
+        };
+        canvasBox.appendChild(img);
+        img.src = imgUrl;
+    }
+</script>
+</body>
+</html>
