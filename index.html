@@ -3,217 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NMElab Cleanup - Stable v2.0</title>
-    <link rel="stylesheet" href="./annotorious.min.css">
-    
+    <title>MYlab Alumni & Team Update</title>
     <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; display: flex; height: 100vh; background: #f0f2f5; overflow: hidden; }
+        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; }
         
-        /* Sidebar */
-        #sidebar { width: 280px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
-        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.3rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); }
+        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
+        p.intro { text-align: center; margin-bottom: 30px; color: #607d8b; }
+
+        /* Searchable Select Styling */
+        .search-container { position: relative; margin-bottom: 25px; }
+        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; transition: 0.2s; }
+        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 4px 12px rgba(30, 136, 229, 0.1); }
         
-        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-        .thumb-card:hover { border-color: var(--accent); }
-        .thumb-card.processed { border: 3px solid var(--success) !important; }
-        .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
-        .thumb-card.is-unclear { border: 3px solid var(--unclear) !important; }
-        .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        #search-results { 
+            position: absolute; width: 100%; max-height: 200px; background: white; 
+            border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; 
+            z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none;
+        }
+        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+        .result-item:hover { background: #f1f8ff; color: var(--accent); }
 
-        .thumb-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
-        .thumb-info { padding: 6px; font-size: 12px; text-align: center; font-weight: bold; color: #455a64; background: #fafafa; }
-
-        /* Main Workspace */
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; }
-        #status-bar { padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 13px; font-weight: 600; align-self: center; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .saving { color: #f57c00; animation: pulse 1.5s infinite; border-color: #f57c00 !important; }
-
-        #workspace { display: flex; gap: 20px; justify-content: center; align-items: flex-start; height: 90vh; }
+        .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
         
-        /* Central Column: Main Image + Reference Images */
-        #center-col { display: flex; flex-direction: column; gap: 15px; max-width: 65%; display: none; }
-        #canvas-box { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        #current-img { width: 100%; max-height: 60vh; display: block; border-radius: 4px; }
-
-        /* Context/Reference Images (The "a" and "b" shots) */
-        #reference-panel { display: flex; gap: 10px; justify-content: center; }
-        .ref-thumb { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s; }
-        .ref-thumb:hover { transform: scale(1.05); }
-
-        /* Control Panel */
-        #input-panel { width: 320px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #cfd8dc; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; }
-        .radio-group { display: flex; flex-direction: column; gap: 12px; }
-        .radio-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #37474f; padding: 8px; border-radius: 6px; }
-        .radio-option:hover { background: #f8f9fa; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
+        .full-width { grid-column: span 2; }
         
-        #intro-overlay { text-align: center; max-width: 600px; background: #fff; padding: 40px; border-radius: 15px; border-top: 8px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 50px; }
-        .warning-text { color: var(--warning); font-weight: bold; margin: 20px 0; border: 2px dashed var(--warning); padding: 12px; border-radius: 8px; background: #fff8f8; font-size: 14px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
+        
+        .photo-preview-wrap { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
+        #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
+        .upload-btn { display: inline-block; margin-top: 10px; color: var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: bold; text-decoration: underline; }
 
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
+        .btn-save:hover { background: #0d1440; }
+        .btn-save:disabled { background: #90a4ae; }
+
+        #status-msg { text-align: center; margin-top: 20px; font-weight: bold; }
+        .saving { color: #f57c00; animation: pulse 1.5s infinite; }
+        .success { color: #2e7d32; }
+        .hidden { display: none; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="sidebar">
-    <h2>NMElab Cleanup</h2>
-    <div id="thumb-list"></div>
-</div>
+<div class="card">
+    <h1>MYlab Team Update</h1>
+    <p class="intro">Search for your name to begin updating your profile.</p>
 
-<div id="main-container">
-    <div id="status-bar">Syncing with Lab Records...</div>
-
-    <div id="workspace">
-        <div id="intro-overlay">
-            <h1>Welcome to NMElab Cleanup</h1>
-            <p>Help identify contents by annotating the zoomed-in photos.</p>
-            <div class="warning-text">Wait for the orange "Saving" pulse before switching samples.</div>
-            <p id="loading-msg" style="color: #78909c;">Fetching data...</p>
-        </div>
-
-        <div id="center-col">
-            <div id="canvas-box"></div>
-            <div id="reference-panel">
-                </div>
-        </div>
-
-        <div id="input-panel">
-            <h3 style="margin-top:0; color:var(--primary); font-size: 1.1rem;">Sample Status</h3>
-            <div class="radio-group">
-                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Toss everything')"><span>Toss everything.</span></label>
-                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Keep some things')"><span>Keep some things.</span></label>
-                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Potentially useful')"><span>Might be useful.</span></label>
-                <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Unknown/Not mine')"><span>I don't know this.</span></label>
-            </div>
-            <p style="font-size: 11px; color: #90a4ae; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
-                Drawings are saved automatically.
-            </p>
-        </div>
+    <div class="search-container">
+        <label>Search Your Name</label>
+        <input type="text" id="name-search" placeholder="Type to search..." autocomplete="off" oninput="filterNames()">
+        <div id="search-results"></div>
     </div>
-</div>
 
-<script src="./annotorious.min.js"></script>
-<script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
-    const FOLDER = './images'; 
-    let anno = null;
-    let currentActiveId = null;
-    let dataCache = {}; 
+    <div id="main-form" class="hidden">
+        <div class="photo-preview-wrap">
+            <img id="current-photo" src="" alt="Profile Photo">
+            <br>
+            <label class="upload-btn">
+                Upload New Photo
+                <input type="file" id="photo-upload" accept="image/*" class="hidden" onchange="previewPhoto()">
+            </label>
+        </div>
 
-    async function initGallery() {
-        const loadMsg = document.getElementById('loading-msg');
-        try {
-            const res = await fetch(`${SCRIPT_URL}?imageId=ALL_SAMPLES`);
-            const allData = await res.json();
-            allData.forEach(d => {
-                if (!dataCache[d.imageId]) dataCache[d.imageId] = [];
-                dataCache[d.imageId].push(d);
-            });
-            renderCards();
-            document.getElementById('status-bar').innerText = "Gallery Ready";
-            loadMsg.innerText = "← Select a sample to begin identification.";
-        } catch (e) {
-            renderCards();
-            document.getElementById('status-bar').innerText = "Sync Error (Offline)";
-        }
-    }
-
-    function renderCards() {
-        const list = document.getElementById('thumb-list');
-        list.innerHTML = ''; 
-        for (let i = 1; i <= 57; i++) {
-            const id = `Sample ${i}`;
-            const card = document.createElement('div');
-            card.id = `card-${i}`;
-            
-            const samplesData = dataCache[id] || [];
-            const isDone = samplesData.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
-            const isUnclear = !isDone && samplesData.some(d => d.type === "StatusUpdate");
-
-            card.className = 'thumb-card' + (isDone ? ' processed' : isUnclear ? ' is-unclear' : '');
-            // UI Change: Sidebar now shows the zoomed-in image (index.jpg)
-            card.innerHTML = `<img src="${FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
-            card.onclick = () => selectImage(id, i);
-            list.appendChild(card);
-        }
-    }
-
-    function selectImage(id, index) {
-        currentActiveId = id; 
-        const status = document.getElementById('status-bar');
-        const centerCol = document.getElementById('center-col');
-        const panel = document.getElementById('input-panel');
-        const intro = document.getElementById('intro-overlay');
-        const refPanel = document.getElementById('reference-panel');
-
-        intro.style.display = 'none';
-        centerCol.style.display = 'flex'; 
-        panel.style.display = 'block';
-        document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
-
-        // Load Main Interactive Image
-        if (anno) { try { anno.destroy(); } catch(e) {} anno = null; }
-        const canvasBox = document.getElementById('canvas-box');
-        canvasBox.innerHTML = ''; 
-        const img = document.createElement('img');
-        img.id = "current-img";
-        canvasBox.appendChild(img);
-
-        img.onload = () => {
-            if (currentActiveId !== id) return;
-            anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
-            const localData = dataCache[id] || [];
-            anno.setAnnotations(localData.filter(d => d.type !== "StatusUpdate"));
-            status.innerText = `Viewing: ${id}`;
-            anno.on('createAnnotation', (a) => syncToSheet(id, a));
-        };
-        img.src = `${FOLDER}/${index}.jpg`;
-
-        // Load Reference (Zoomed out) Images
-        refPanel.innerHTML = '';
-        const refs = [`${index}a.jpg`, `${index}b.jpg`];
-        refs.forEach(file => {
-            const refImg = document.createElement('img');
-            refImg.src = `${FOLDER}/${file}`;
-            refImg.className = 'ref-thumb';
-            refImg.onerror = () => refImg.remove(); // Hide if 1b.jpg doesn't exist
-            refImg.onclick = () => window.open(refImg.src, '_blank');
-            refPanel.appendChild(refImg);
-        });
-    }
-
-    async function syncToSheet(id, content) {
-        const status = document.getElementById('status-bar');
-        status.innerText = "Saving Annotation..."; status.classList.add("saving");
-        if (!dataCache[id]) dataCache[id] = [];
-        dataCache[id].push(content);
-        const params = new URLSearchParams();
-        params.append('imageId', id);
-        params.append('annotation', JSON.stringify(content));
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-        status.innerText = "Saved!"; status.classList.remove("saving");
-    }
-
-    async function saveStatus(label) {
-        const status = document.getElementById('status-bar');
-        status.innerText = "Saving Choice..."; status.classList.add("saving");
-        const match = currentActiveId.match(/\d+/);
-        if(match) {
-            const card = document.getElementById(`card-${match[0]}`);
-            card.classList.remove('processed', 'is-unclear');
-            card.classList.add((label === "Toss everything" || label === "Keep some things") ? 'processed' : 'is-unclear');
-        }
-        const updateObj = {type: "StatusUpdate", body: label, imageId: currentActiveId};
-        if (!dataCache[currentActiveId]) dataCache[currentActiveId] = [];
-        dataCache[currentActiveId].push(updateObj);
-        const params = new URLSearchParams();
-        params.append('imageId', currentActiveId);
-        params.append('annotation', JSON.stringify(updateObj));
-        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-        status.innerText = "Choice Saved!"; status.classList.remove("saving");
-    }
-
-    initGallery();
-</script>
-</body>
-</html>
+        <div class="section-title">Lab History</div>
+        <div class="grid">
+            <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
+            <div class="form-group"><label>Office Number</label><input type="text" id="office">
