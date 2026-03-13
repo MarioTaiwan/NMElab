@@ -3,63 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MYlab Debug Mode</title>
+    <title>MYlab Team Update</title>
     <style>
         :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; }
         body { font-family: sans-serif; background: var(--bg); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 600px; }
-        
-        /* Debug Console Styling */
-        #debug-console { 
-            width: 100%; max-width: 600px; background: #263238; color: #80cbc4; 
-            padding: 15px; border-radius: 8px; margin-top: 20px; font-family: monospace; 
-            font-size: 12px; height: 150px; overflow-y: auto; border: 2px solid #000;
-        }
-        .log-error { color: #ff8a80; }
-        .log-info { color: #ce93d8; }
-        .log-success { color: #a5d6a7; }
-        
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 700px; border-top: 8px solid var(--primary); }
+        .search-container { position: relative; margin: 20px 0; }
+        #name-search { width: 100%; padding: 12px; border: 2px solid #cfd8dc; border-radius: 8px; box-sizing: border-box; }
+        #search-results { position: absolute; width: 100%; background: white; border: 1px solid #ddd; z-index: 10; max-height: 200px; overflow-y: auto; display: none; }
+        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .result-item:hover { background: #f0f7ff; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .full { grid-column: span 2; }
+        label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        #photo-preview { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #eee; display: block; margin: 0 auto 10px; }
         .hidden { display: none; }
-        #loading-ui { text-align: center; padding: 20px; color: #546e7a; font-weight: bold; }
+        #debug-log { width: 100%; max-width: 700px; background: #222; color: #0f0; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 11px; margin-top: 20px; height: 120px; overflow-y: auto; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h1>System Diagnosis</h1>
-    <div id="loading-ui">Status: Attempting to reach Google Script...</div>
-    
-    <div id="main-ui" class="hidden">
-        <p>Connection Successful. Database Loaded.</p>
-        <select id="member-select" style="width:100%; padding:10px;"></select>
+    <h2>MYlab Alumni Directory</h2>
+    <div id="loading-status">📡 Initializing connection...</div>
+
+    <div class="search-container">
+        <input type="text" id="name-search" placeholder="Type your name to start..." autocomplete="off" oninput="filterNames()">
+        <div id="search-results"></div>
+    </div>
+
+    <div id="edit-form" class="hidden">
+        <img id="photo-preview" src="">
+        <div style="text-align:center"><label style="cursor:pointer; color:var(--accent)">Change Photo<input type="file" id="photo-file" class="hidden" onchange="previewImg()"></label></div>
+        
+        <div class="grid">
+            <div class="form-group"><label>Full Name</label><input type="text" id="f-name"></div>
+            <div class="form-group"><label>Office</label><input type="text" id="f-office"></div>
+            <div class="form-group"><label>Start (MM/YY)</label><input type="text" id="f-start"></div>
+            <div class="form-group"><label>End (MM/YY)</label><input type="text" id="f-end"></div>
+            <div class="form-group full"><label>Position</label><input type="text" id="f-pos"></div>
+            <div class="form-group"><label>Country</label><input type="text" id="f-country"></div>
+            <div class="form-group"><label>Current Position</label><input type="text" id="f-currPos"></div>
+            <div class="form-group full"><label>Current Work Topic</label><input type="text" id="f-topic"></div>
+            <div class="form-group"><label>Email</label><input type="text" id="f-email"></div>
+            <div class="form-group"><label>LinkedIn</label><input type="text" id="f-linkedin"></div>
+            <div class="form-group"><label>Google Scholar</label><input type="text" id="f-scholar"></div>
+            <div class="form-group"><label>Website</label><input type="text" id="f-web"></div>
+            <div class="form-group full"><label>Other Info</label><textarea id="f-other"></textarea></div>
+        </div>
+        <button class="btn-save" onclick="saveData()">Update My Profile</button>
     </div>
 </div>
 
-<div id="debug-console">
-    <div>[SYSTEM] Debug Monitor Initialized...</div>
-</div>
+<div id="debug-log"></div>
 
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQxAhPaFL7LQyxoSFuJrop_TawJ8PmROybD626iEmsg7s-Rdem0soS-IyhiQYx2pPs/exec';
-
-    function debugLog(msg, type = 'info') {
-        const consoleDiv = document.getElementById('debug-console');
-        const entry = document.createElement('div');
-        const time = new Date().toLocaleTimeString();
-        entry.className = `log-${type}`;
-        entry.innerText = `[${time}] ${msg}`;
-        consoleDiv.appendChild(entry);
-        consoleDiv.scrollTop = consoleDiv.scrollHeight;
-        console.log(`[DEBUG] ${msg}`);
-    }
-
-    async function init() {
-        debugLog("Starting fetch to Google Apps Script...", "info");
-        debugLog(`Target URL: ${SCRIPT_URL.substring(0, 45)}...`, "info");
-
-        const timeout = setTimeout(() => {
-            debugLog("CRITICAL: Fetch is taking longer than 10 seconds. Possible CORS or Permission issue.", "error");
-        }, 10000);
-
-        try {
-            const response = await fetch(`${
+    let teamData = [];
