@@ -3,169 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MYlab Team Update v3.2</title>
+    <title>MYlab Central Command v1.0</title>
     <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; --success: #2e7d32; --danger: #c62828; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; position: relative; }
-        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
-        .version-badge { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: #90a4ae; font-weight: bold; background: #eceff1; padding: 3px 8px; border-radius: 12px; }
+        /* Navigation Tabs */
+        nav { background: var(--primary); width: 100%; display: flex; justify-content: center; gap: 20px; padding: 15px 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .nav-btn { background: transparent; border: 2px solid rgba(255,255,255,0.3); color: white; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .nav-btn.active { background: white; color: var(--primary); border-color: white; }
+        .nav-btn:hover { background: rgba(255,255,255,0.1); }
 
-        /* Search Styles */
+        .container { width: 100%; max-width: 1000px; padding: 40px 20px; box-sizing: border-box; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 8px solid var(--primary); position: relative; }
+        h1 { text-align: center; color: var(--primary); margin-top: 0; }
+        .version-badge { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: #90a4ae; font-weight: bold; }
+
+        /* Module Visibility */
+        .module { display: none; }
+        .module.active { display: block; }
+
+        /* --- MODULE: TEAM UPDATE STYLES --- */
         .search-container { position: relative; margin-bottom: 25px; }
-        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
-        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 8px rgba(30,136,229,0.2); }
-        
-        #search-results { 
-            position: absolute; width: 100%; max-height: 200px; background: white; 
-            border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; 
-            z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none;
-        }
-        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        #search-results { position: absolute; width: 100%; max-height: 200px; background: white; border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; }
         .result-item:hover { background: #f1f8ff; color: var(--accent); }
-
-        /* Form Layout */
-        .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { margin-bottom: 15px; }
         .full-width { grid-column: span 2; }
-        
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
-        
+        .section-title { font-size: 0.9rem; text-transform: uppercase; color: var(--accent); margin: 25px 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .photo-preview-wrap { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
-        #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
-        
-        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
-        .btn-save:hover { background: #0d1440; }
-        .btn-save:disabled { background: #90a4ae; cursor: not-allowed; }
+        #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 20px; }
+
+        /* --- MODULE: CLEANUP GALLERY STYLES --- */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .sample-card { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; transition: 0.3s; }
+        .sample-card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .sample-img { width: 100%; height: 200px; object-fit: cover; background: #eee; }
+        .sample-info { padding: 15px; }
+        .sample-actions { display: flex; gap: 10px; padding: 10px 15px; background: #f9f9f9; }
+        .action-btn { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; color: white; }
+        .btn-keep { background: var(--success); }
+        .btn-trash { background: var(--danger); }
+        .btn-id { background: var(--accent); }
+        .status-badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; }
+        .status-pending { background: #fff3e0; color: #ef6c00; }
+        .status-done { background: #e8f5e9; color: #2e7d32; }
 
         .hidden { display: none; }
-        #loading-status { text-align: center; font-weight: bold; padding: 10px; color: var(--primary); }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="version-badge">v3.2</div>
-    <h1>MYlab Team Update</h1>
-    <div id="loading-status">📡 Initializing connection...</div>
+<nav>
+    <button class="nav-btn active" onclick="switchTab('team')">Team Directory</button>
+    <button class="nav-btn" onclick="switchTab('cleanup')">NMElab Cleanup</button>
+</nav>
 
-    <div class="search-container">
-        <label>Find Your Profile</label>
-        <input type="text" id="name-search" placeholder="Connecting to lab records..." autocomplete="off" oninput="filterNames()" disabled>
-        <div id="search-results"></div>
+<div class="container">
+    
+    <div id="team-module" class="module active card">
+        <div class="version-badge">Team v3.2</div>
+        <h1>Team Update</h1>
+        <div id="team-loading" style="text-align:center; font-weight:bold; margin-bottom:15px;">📡 Connecting...</div>
+
+        <div class="search-container">
+            <input type="text" id="name-search" placeholder="Search members..." autocomplete="off" oninput="filterTeam()">
+            <div id="search-results"></div>
+        </div>
+
+        <div id="team-form" class="hidden">
+            <div class="photo-preview-wrap">
+                <img id="current-photo" src="https://via.placeholder.com/150">
+                <br>
+                <label style="cursor:pointer; color:var(--accent); text-decoration:underline;">
+                    Change Photo <input type="file" id="photo-upload" accept="image/*" class="hidden" onchange="previewPhoto()">
+                </label>
+            </div>
+            <div class="section-title">Details</div>
+            <div class="grid">
+                <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
+                <div class="form-group"><label>Office</label><input type="text" id="office"></div>
+                <div class="form-group"><label>Start (MM/YY)</label><input type="text" id="start"></div>
+                <div class="form-group"><label>End (MM/YY)</label><input type="text" id="end"></div>
+                <div class="form-group full-width"><label>Current Position/Work</label><input type="text" id="currPos"></div>
+                <div class="form-group full-width"><label>Email</label><input type="text" id="email"></div>
+            </div>
+            <button id="save-team-btn" class="btn-save" onclick="handleTeamSubmit()">Sync Profile</button>
+        </div>
     </div>
 
-    <div id="main-form" class="hidden">
-        <div class="photo-preview-wrap">
-            <img id="current-photo" src="https://via.placeholder.com/150" alt="Profile Photo">
-            <br>
-            <label style="cursor:pointer; color:var(--accent); font-weight:bold; font-size:0.8rem; text-decoration: underline;">
-                Upload New Photo
-                <input type="file" id="photo-upload" accept="image/*" class="hidden" onchange="previewPhoto()">
-            </label>
-        </div>
-
-        <div class="section-title">Lab History</div>
-        <div class="grid">
-            <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
-            <div class="form-group"><label>Office Number</label><input type="text" id="office"></div>
-            <div class="form-group"><label>Start Date (MM/YY)</label><input type="text" id="start"></div>
-            <div class="form-group"><label>End Date (MM/YY)</label><input type="text" id="end"></div>
-            <div class="form-group full-width"><label>Position at MYlab</label><input type="text" id="pos"></div>
-        </div>
-
-        <div class="section-title">Current Status</div>
-        <div class="grid">
-            <div class="form-group"><label>Country</label><input type="text" id="country"></div>
-            <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
-            <div class="form-group full-width"><label>Current Work Topic</label><input type="text" id="topic"></div>
-        </div>
-
-        <div class="section-title">Links & Contact</div>
-        <div class="grid">
-            <div class="form-group"><label>Email</label><input type="email" id="email"></div>
-            <div class="form-group"><label>LinkedIn URL</label><input type="text" id="linkedin"></div>
-            <div class="form-group"><label>Google Scholar</label><input type="text" id="scholar"></div>
-            <div class="form-group"><label>Personal Website</label><input type="text" id="web"></div>
-        </div>
-
-        <div class="section-title">Additional Info</div>
-        <div class="form-group">
-            <textarea id="other" rows="3" placeholder="Notes or personal updates..."></textarea>
-        </div>
-
-        <button id="save-btn" class="btn-save" onclick="handleSubmit()">Save and Sync Changes</button>
+    <div id="cleanup-module" class="module card">
+        <div class="version-badge">Cleanup v2.0</div>
+        <h1>Sample Cleanup</h1>
+        <p style="text-align:center; color:#666;">57 items identified. Take decisive action.</p>
+        <div id="cleanup-loading" style="text-align:center; font-weight:bold;">📡 Loading Gallery...</div>
+        
+        <div id="gallery" class="gallery-grid">
+            </div>
     </div>
+
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
-    let teamData = [];
-    let selectedId = null;
+    // CONFIGURATION
+    const TEAM_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
+    const CLEANUP_URL = 'YOUR_CLEANUP_SCRIPT_URL'; // Replace with your original Cleanup Script URL
 
-    async function init() {
-        try {
-            const res = await fetch(`${SCRIPT_URL}?action=getList`);
-            teamData = await res.json();
-            
-            document.getElementById('loading-status').innerText = "✅ Database Connected";
-            const searchInput = document.getElementById('name-search');
-            searchInput.placeholder = `Search among ${teamData.length} members...`;
-            searchInput.disabled = false;
-        } catch (e) {
-            console.error(e);
-            document.getElementById('loading-status').innerText = "❌ Connection error.";
+    let teamData = [];
+    let cleanupData = [];
+    let selectedTeamId = null;
+
+    // TAB SWITCHING
+    function switchTab(tab) {
+        document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        
+        if (tab === 'team') {
+            document.getElementById('team-module').classList.add('active');
+            event.target.classList.add('active');
+        } else {
+            document.getElementById('cleanup-module').classList.add('active');
+            event.target.classList.add('active');
+            if (cleanupData.length === 0) loadCleanup();
         }
     }
 
-    function filterNames() {
+    // --- TEAM LOGIC ---
+    async function loadTeam() {
+        try {
+            const res = await fetch(`${TEAM_URL}?action=getList`);
+            teamData = await res.json();
+            document.getElementById('team-loading').innerText = "✅ Connection Active";
+        } catch (e) { document.getElementById('team-loading').innerText = "❌ Connection Failed"; }
+    }
+
+    function filterTeam() {
         const query = document.getElementById('name-search').value.toLowerCase();
-        const resultsDiv = document.getElementById('search-results');
-        resultsDiv.innerHTML = '';
-        if (query.length < 1) { resultsDiv.style.display = 'none'; return; }
+        const results = document.getElementById('search-results');
+        results.innerHTML = '';
+        if (query.length < 1) { results.style.display = 'none'; return; }
 
         const filtered = teamData.filter(m => m.name.toLowerCase().includes(query));
-        if (filtered.length > 0) {
-            filtered.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.textContent = m.name;
-                div.onclick = () => selectMember(m);
-                resultsDiv.appendChild(div);
-            });
-            resultsDiv.style.display = 'block';
-        }
+        filtered.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.textContent = m.name;
+            div.onclick = () => {
+                selectedTeamId = m.id;
+                document.getElementById('team-form').classList.remove('hidden');
+                document.getElementById('name').value = m.name || "";
+                document.getElementById('office').value = m.office || "";
+                document.getElementById('start').value = m.start || "";
+                document.getElementById('end').value = m.end || "";
+                document.getElementById('currPos').value = m.currPos || "";
+                document.getElementById('email').value = m.email || "";
+                document.getElementById('current-photo').src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
+                results.style.display = 'none';
+                document.getElementById('name-search').value = m.name;
+            };
+            results.appendChild(div);
+        });
+        results.style.display = 'block';
     }
 
-    function selectMember(m) {
-        selectedId = m.id;
-        document.getElementById('name-search').value = m.name;
-        document.getElementById('search-results').style.display = 'none';
-        document.getElementById('main-form').classList.remove('hidden');
+    async function handleTeamSubmit() {
+        const btn = document.getElementById('save-team-btn');
+        btn.disabled = true; btn.innerText = "Syncing...";
         
-        // Populate fields
-        document.getElementById('name').value = m.name || "";
-        document.getElementById('office').value = m.office || "";
-        document.getElementById('start').value = m.start || "";
-        document.getElementById('end').value = m.end || "";
-        document.getElementById('pos').value = m.pos || "";
-        document.getElementById('country').value = m.country || "";
-        document.getElementById('currPos').value = m.currPos || "";
-        document.getElementById('topic').value = m.topic || "";
-        document.getElementById('email').value = m.email || "";
-        document.getElementById('linkedin').value = m.linkedin || "";
-        document.getElementById('scholar').value = m.scholar || "";
-        document.getElementById('web').value = m.web || "";
-        document.getElementById('other').value = m.other || "";
-        
-        // Handle image: check if photoUrl exists and is valid
-        const photoEl = document.getElementById('current-photo');
-        photoEl.src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
-        
-        document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
+        const payload = {
+            id: selectedTeamId,
+            name: document.getElementById('name').value,
+            office: document.getElementById('office').value,
+            start: document.getElementById('start').value,
+            end: document.getElementById('end').value,
+            currPos: document.getElementById('currPos').value,
+            email: document.getElementById('email').value
+        };
+
+        try {
+            await fetch(TEAM_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("Team profile updated!");
+        } catch(e) { alert("Sync failed."); }
+        btn.disabled = false; btn.innerText = "Sync Profile";
     }
 
     function previewPhoto() {
@@ -177,64 +200,51 @@
         }
     }
 
-    async function handleSubmit() {
-        const btn = document.getElementById('save-btn');
-        const fileInput = document.getElementById('photo-upload');
-        btn.disabled = true;
-        btn.innerText = "Syncing with MYlab Cloud...";
-
-        let photoBase64 = null;
-        if (fileInput.files.length > 0) {
-            photoBase64 = await new Promise(r => {
-                const reader = new FileReader();
-                reader.onload = () => r(reader.result.split(',')[1]);
-                reader.readAsDataURL(fileInput.files[0]);
-            });
+    // --- CLEANUP LOGIC ---
+    async function loadCleanup() {
+        if (CLEANUP_URL === 'YOUR_CLEANUP_SCRIPT_URL') {
+            document.getElementById('cleanup-loading').innerText = "⚠️ Please set CLEANUP_URL in script";
+            return;
         }
-
-        const payload = {
-            id: selectedId,
-            name: document.getElementById('name').value,
-            office: document.getElementById('office').value,
-            start: document.getElementById('start').value,
-            end: document.getElementById('end').value,
-            pos: document.getElementById('pos').value,
-            country: document.getElementById('country').value,
-            currPos: document.getElementById('currPos').value,
-            topic: document.getElementById('topic').value,
-            email: document.getElementById('email').value,
-            linkedin: document.getElementById('linkedin').value,
-            scholar: document.getElementById('scholar').value,
-            web: document.getElementById('web').value,
-            other: document.getElementById('other').value,
-            photoData: photoBase64
-        };
-
         try {
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify(payload) 
-            });
-            alert("Success! Your update has been queued. Please refresh in a moment to see changes.");
-            btn.innerText = "Update Successful";
-            setTimeout(() => { 
-                btn.disabled = false; 
-                btn.innerText = "Save and Sync Changes";
-            }, 3000);
-        } catch (e) {
-            alert("Connection error. Profile data may not have saved.");
-            btn.disabled = false;
-        }
+            const res = await fetch(`${CLEANUP_URL}?action=getSamples`);
+            cleanupData = await res.json();
+            renderGallery();
+            document.getElementById('cleanup-loading').classList.add('hidden');
+        } catch (e) { document.getElementById('cleanup-loading').innerText = "❌ Gallery Load Failed"; }
     }
 
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-container')) {
-            document.getElementById('search-results').style.display = 'none';
-        }
-    });
+    function renderGallery() {
+        const gallery = document.getElementById('gallery');
+        gallery.innerHTML = '';
+        cleanupData.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'sample-card';
+            card.innerHTML = `
+                <img src="${item.photoUrl}" class="sample-img">
+                <div class="sample-info">
+                    <span class="status-badge ${item.status === 'Done' ? 'status-done' : 'status-pending'}">${item.status}</span>
+                    <div style="font-weight:bold;">ID: ${item.id}</div>
+                    <div style="font-size:0.8rem; color:#666;">${item.desc || 'No description provided.'}</div>
+                </div>
+                <div class="sample-actions">
+                    <button class="action-btn btn-id" onclick="updateSample('${item.id}', 'Identify')">Identify</button>
+                    <button class="action-btn btn-keep" onclick="updateSample('${item.id}', 'Keep')">Keep</button>
+                    <button class="action-btn btn-trash" onclick="updateSample('${item.id}', 'Trash')">Trash</button>
+                </div>
+            `;
+            gallery.appendChild(card);
+        });
+    }
 
-    init();
+    async function updateSample(id, action) {
+        console.log(`Action ${action} on sample ${id}`);
+        // Logic for sending post to Cleanup Script would go here
+        alert(`Action "${action}" recorded for Sample ${id}`);
+    }
+
+    // Initialize
+    loadTeam();
 </script>
 </body>
 </html>
