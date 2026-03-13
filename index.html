@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <title>MYlab Alumni & Team Update 3</title>
+    <title>MYlab Team Update v3.0</title>
     <style>
         :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; position: relative; }
         h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
-        p.intro { text-align: center; margin-bottom: 30px; color: #607d8b; }
+        .version-badge { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: #90a4ae; font-weight: bold; background: #eceff1; padding: 3px 8px; border-radius: 12px; }
 
         /* Search Styles */
         .search-container { position: relative; margin-bottom: 25px; }
@@ -49,12 +48,13 @@
 <body>
 
 <div class="card">
+    <div class="version-badge">v3.0</div>
     <h1>MYlab Team Update</h1>
     <div id="loading-status">📡 Initializing connection...</div>
 
     <div class="search-container">
         <label>Find Your Profile</label>
-        <input type="text" id="name-search" placeholder="Type your name to begin..." autocomplete="off" oninput="filterNames()">
+        <input type="text" id="name-search" placeholder="Type your name to begin..." autocomplete="off" oninput="filterNames()" disabled>
         <div id="search-results"></div>
     </div>
 
@@ -108,14 +108,16 @@
 
     async function init() {
         try {
-            // Using redirect: 'follow' is key for GitHub Pages to Google handshake
-            const res = await fetch(`${SCRIPT_URL}?action=getList`, { method: 'GET', redirect: 'follow' });
+            const res = await fetch(`${SCRIPT_URL}?action=getList`);
             teamData = await res.json();
+            
             document.getElementById('loading-status').innerText = "✅ Database Connected";
-            document.getElementById('name-search').placeholder = `Search among ${teamData.length} members...`;
+            const searchInput = document.getElementById('name-search');
+            searchInput.placeholder = `Search among ${teamData.length} members...`;
+            searchInput.disabled = false;
         } catch (e) {
-            console.error("Connection failed:", e);
-            document.getElementById('loading-status').innerText = "❌ Connection Failed. Refresh and try again.";
+            console.error(e);
+            document.getElementById('loading-status').innerText = "❌ Connection failed. Please check your Script URL.";
         }
     }
 
@@ -144,7 +146,6 @@
         document.getElementById('search-results').style.display = 'none';
         document.getElementById('main-form').classList.remove('hidden');
         
-        // Fill fields based on your 16-column mapping
         document.getElementById('name').value = m.name || "";
         document.getElementById('office').value = m.office || "";
         document.getElementById('start').value = m.start || "";
@@ -206,11 +207,9 @@
         };
 
         try {
-            // mode: 'no-cors' allows the data to be sent without triggering CORS blocks
             await fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
-                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify(payload) 
             });
             alert("Success! Your profile has been sent for synchronization.");
@@ -219,3 +218,21 @@
                 btn.disabled = false; 
                 btn.innerText = "Save and Sync Changes";
             }, 3000);
+        } catch (e) {
+            alert("Error: Connection lost. Please try again.");
+            btn.disabled = false;
+            btn.innerText = "Save and Sync Changes";
+        }
+    }
+
+    // Close results when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-container')) {
+            document.getElementById('search-results').style.display = 'none';
+        }
+    });
+
+    init();
+</script>
+</body>
+</html>
