@@ -10,44 +10,52 @@
         /* ========================================== */
         /* SHARED & SWITCHBOARD CSS                   */
         /* ========================================== */
-        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f0f2f5; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
+        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; }
         
-        #team-app { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; overflow-y: auto; padding-top: 40px; }
-        #cleanup-app { display: none; width: 100%; height: 100%; }
+        #team-app { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; overflow-y: auto; padding: 20px 0; box-sizing: border-box; }
+        #cleanup-app { display: none; width: 100%; height: 100%; flex-direction: row; }
         .hidden { display: none !important; }
 
         /* ========================================== */
-        /* TEAM DIRECTORY CSS                         */
+        /* TEAM UPDATE v3.2 CSS                       */
         /* ========================================== */
-        .team-container { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; }
-        .team-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 8px solid var(--primary); position: relative; }
-        
-        #connection-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 0 0 12px 12px; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; position: relative; margin-bottom: 40px; }
+        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
+        .version-badge { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: #90a4ae; font-weight: bold; background: #eceff1; padding: 3px 8px; border-radius: 12px; }
 
         .search-container { position: relative; margin-bottom: 25px; }
-        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
+        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 8px rgba(30,136,229,0.2); }
+        
         #search-results { position: absolute; width: 100%; max-height: 200px; background: white; border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
-        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; }
-        .result-item:hover { background: #f1f8ff; }
-        
+        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+        .result-item:hover { background: #f1f8ff; color: var(--accent); }
+
+        .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 15px; }
         .full-width { grid-column: span 2; }
-        .team-card label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
-        .team-card input, .team-card textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
-        .team-card textarea { resize: vertical; min-height: 80px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
         
-        .btn-continue { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.2rem; margin-top: 30px; transition: 0.3s; }
-        .btn-continue:hover { background: #0d1440; }
+        .photo-preview-wrap { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
+        #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
+        
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
+        .btn-save:hover { background: #0d1440; }
+        .btn-save:disabled { background: #90a4ae; cursor: not-allowed; }
+
+        .btn-continue { background: var(--success); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 15px; transition: 0.2s; }
+        .btn-continue:hover { background: #1b5e20; }
+
+        #loading-status { text-align: center; font-weight: bold; padding: 10px; color: var(--primary); }
 
         /* ========================================== */
         /* CLEANUP v2.0 STABLE CSS                    */
         /* ========================================== */
         #sidebar { width: 280px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
-        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.3rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; cursor: pointer; transition: 0.2s; }
-        #sidebar h2:hover { color: var(--accent); }
+        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; cursor: pointer; text-decoration: underline; }
         
         .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
         .thumb-card:hover { border-color: var(--accent); }
@@ -55,90 +63,103 @@
         .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
         .thumb-card.is-unclear { border: 3px solid var(--unclear) !important; }
         .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
-
         .thumb-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
         .thumb-info { padding: 6px; font-size: 12px; text-align: center; font-weight: bold; color: #455a64; background: #fafafa; }
 
-        #main-container { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; background: #f0f2f5; }
         #status-bar { padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 13px; font-weight: 600; align-self: center; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .saving { color: #f57c00; animation: pulse 1.5s infinite; border-color: #f57c00 !important; }
 
         #workspace { display: flex; gap: 20px; justify-content: center; align-items: flex-start; height: 90vh; }
-        
         #center-col { display: flex; flex-direction: column; gap: 15px; max-width: 65%; display: none; }
         #canvas-box { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #current-img { width: 100%; max-height: 60vh; display: block; border-radius: 4px; }
-
         #reference-panel { display: flex; gap: 10px; justify-content: center; }
-        .ref-thumb { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s; }
-        .ref-thumb:hover { transform: scale(1.05); }
-
-        #input-panel { width: 320px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #cfd8dc; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; }
-        .radio-group { display: flex; flex-direction: column; gap: 12px; }
-        .radio-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #37474f; padding: 8px; border-radius: 6px; }
-        .radio-option:hover { background: #f8f9fa; }
+        .ref-thumb { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in; }
+        #input-panel { width: 320px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #cfd8dc; display: none; }
+        .radio-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; padding: 8px; }
         
-        #intro-overlay { text-align: center; max-width: 600px; background: #fff; padding: 40px; border-radius: 15px; border-top: 8px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 50px; }
-        .warning-text { color: var(--warning); font-weight: bold; margin: 20px 0; border: 2px dashed var(--warning); padding: 12px; border-radius: 8px; background: #fff8f8; font-size: 14px; }
-
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="team-app">
-        <div class="team-container">
-            <h1 style="color: var(--primary); text-align: center; margin-bottom: 30px;">MYlab Team Directory</h1>
-            
-            <div class="team-card">
-                <div id="connection-overlay">
-                    <div class="spinner"></div>
-                    <h3 style="color: var(--primary); margin: 0;">Initializing Secure Session...</h3>
-                    <p style="color: #607d8b; font-size: 0.9rem;">Fetching records...</p>
+        <div class="card">
+            <div class="version-badge">v3.2 Integrated</div>
+            <h1>MYlab Team Update</h1>
+            <div id="loading-status">📡 Initializing connection...</div>
+
+            <div class="search-container">
+                <label>Find Your Profile</label>
+                <input type="text" id="name-search" placeholder="Connecting to lab records..." autocomplete="off" oninput="filterNames()" disabled>
+                <div id="search-results"></div>
+            </div>
+
+            <div id="main-form" class="hidden">
+                <div class="photo-preview-wrap">
+                    <img id="current-photo" src="https://via.placeholder.com/150" alt="Profile Photo">
+                    <br>
+                    <label style="cursor:pointer; color:var(--accent); font-weight:bold; font-size:0.8rem; text-decoration: underline;">
+                        Upload New Photo
+                        <input type="file" id="photo-upload" accept="image/*" class="hidden" onchange="previewPhoto()">
+                    </label>
                 </div>
 
-                <div class="search-container">
-                    <label>Find Your Profile</label>
-                    <input type="text" id="name-search" placeholder="Enter name to start..." autocomplete="off" oninput="filterTeam()">
-                    <div id="search-results"></div>
+                <div class="section-title">Lab History</div>
+                <div class="grid">
+                    <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
+                    <div class="form-group"><label>Office Number</label><input type="text" id="office"></div>
+                    <div class="form-group"><label>Start Date (MM/YY)</label><input type="text" id="start"></div>
+                    <div class="form-group"><label>End Date (MM/YY)</label><input type="text" id="end"></div>
+                    <div class="form-group full-width"><label>Position at MYlab</label><input type="text" id="pos"></div>
                 </div>
 
-                <div id="team-form" class="hidden">
-                    <div class="grid">
-                        <div class="form-group"><label>Name</label><input type="text" id="name"></div>
-                        <div class="form-group"><label>Email</label><input type="email" id="email"></div>
-                        <div class="form-group"><label>Office</label><input type="text" id="office"></div>
-                        <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
-                        <div class="form-group full-width"><label>Bio</label><textarea id="bio"></textarea></div>
-                    </div>
-                    <button class="btn-continue" onclick="switchToCleanup()">Continue</button>
+                <div class="section-title">Current Status</div>
+                <div class="grid">
+                    <div class="form-group"><label>Country</label><input type="text" id="country"></div>
+                    <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
+                    <div class="form-group full-width"><label>Current Work Topic</label><input type="text" id="topic"></div>
                 </div>
+
+                <div class="section-title">Links & Contact</div>
+                <div class="grid">
+                    <div class="form-group"><label>Email</label><input type="email" id="email"></div>
+                    <div class="form-group"><label>LinkedIn URL</label><input type="text" id="linkedin"></div>
+                    <div class="form-group"><label>Google Scholar</label><input type="text" id="scholar"></div>
+                    <div class="form-group"><label>Personal Website</label><input type="text" id="web"></div>
+                </div>
+
+                <div class="section-title">Additional Info</div>
+                <div class="form-group">
+                    <textarea id="other" rows="3" placeholder="Notes or personal updates..."></textarea>
+                </div>
+
+                <button id="save-btn" class="btn-save" onclick="handleSubmit()">Save and Sync Changes</button>
+                <button class="btn-continue" onclick="switchToCleanup()">Go to Lab Cleanup Task →</button>
             </div>
         </div>
     </div>
 
     <div id="cleanup-app">
         <div id="sidebar">
-            <h2 title="Return to Team Directory" onclick="switchToTeam()">← Return to Profile</h2>
+            <h2 onclick="switchToTeam()">← return to personal info</h2>
             <div id="thumb-list"></div>
         </div>
 
         <div id="main-container">
             <div id="status-bar">Syncing with Lab Records...</div>
-
             <div id="workspace">
                 <div id="intro-overlay">
                     <h1>Welcome to NMElab Cleanup</h1>
                     <p>Help identify contents by annotating the zoomed-in photos.</p>
                     <div class="warning-text">Wait for the orange "Saving" pulse before switching samples.</div>
-                    <p id="loading-msg" style="color: #78909c;">Fetching data...</p>
+                    <p id="loading-msg" style="color: #78909c;">← Select a sample to begin.</p>
                 </div>
-
                 <div id="center-col">
                     <div id="canvas-box"></div>
                     <div id="reference-panel"></div>
                 </div>
-
                 <div id="input-panel">
                     <h3 style="margin-top:0; color:var(--primary); font-size: 1.1rem;">Sample Status</h3>
                     <div class="radio-group">
@@ -147,9 +168,6 @@
                         <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Potentially useful')"><span>Might be useful.</span></label>
                         <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Unknown/Not mine')"><span>I don't know this.</span></label>
                     </div>
-                    <p style="font-size: 11px; color: #90a4ae; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
-                        Drawings are saved automatically.
-                    </p>
                 </div>
             </div>
         </div>
@@ -158,22 +176,18 @@
     <script src="./annotorious.min.js"></script>
     <script>
         // ==========================================
-        // CONFIG & SWITCHBOARD LOGIC
+        // SWITCHBOARD LOGIC
         // ==========================================
-        const TEAM_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
-        const CLEANUP_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
-        const FOLDER = './images'; 
+        const TEAM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
+        const CLEANUP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
+        const IMAGE_FOLDER = './images';
         
         let isCleanupLoaded = false;
 
         function switchToCleanup() {
             document.getElementById('team-app').style.display = 'none';
             document.getElementById('cleanup-app').style.display = 'flex';
-            
-            if (!isCleanupLoaded) {
-                initGallery();
-                isCleanupLoaded = true;
-            }
+            if (!isCleanupLoaded) { initCleanup(); isCleanupLoaded = true; }
         }
 
         function switchToTeam() {
@@ -182,174 +196,178 @@
         }
 
         // ==========================================
-        // TEAM DIRECTORY LOGIC
+        // TEAM v3.2 LOGIC
         // ==========================================
-        let teamData = [
-            // Pre-filled fallback profile for fast testing/offline support
-            { id: "1", name: "Mario Hofmann", email: "mario@mylab.tw", office: "Main Lab", currPos: "Research Scientist", bio: "Research Scientist focusing on 2D materials" }
-        ];
+        let teamData = [];
+        let selectedId = null;
 
-        window.onload = () => {
-            // Simulate the "Secure Session" connection message delay, then load data
-            setTimeout(() => {
-                fetchTeamData();
-            }, 1200);
-        };
-
-        async function fetchTeamData() {
+        async function initTeam() {
             try {
-                const res = await fetch(`${TEAM_URL}?action=getList`);
-                if(res.ok) { teamData = await res.json(); }
+                const res = await fetch(`${TEAM_SCRIPT_URL}?action=getList`);
+                teamData = await res.json();
+                document.getElementById('loading-status').innerText = "✅ Database Connected";
+                const searchInput = document.getElementById('name-search');
+                searchInput.placeholder = `Search among ${teamData.length} members...`;
+                searchInput.disabled = false;
             } catch (e) {
-                console.warn("Using offline fallback team data.");
-            } finally {
-                // Remove the connection overlay
-                document.getElementById('connection-overlay').style.display = 'none';
+                document.getElementById('loading-status').innerText = "❌ Connection error.";
             }
         }
 
-        function filterTeam() {
+        function filterNames() {
             const query = document.getElementById('name-search').value.toLowerCase();
-            const resDiv = document.getElementById('search-results');
-            resDiv.innerHTML = '';
-            if (query.length < 1) { resDiv.style.display = 'none'; return; }
-
+            const resultsDiv = document.getElementById('search-results');
+            resultsDiv.innerHTML = '';
+            if (query.length < 1) { resultsDiv.style.display = 'none'; return; }
             const filtered = teamData.filter(m => m.name.toLowerCase().includes(query));
             filtered.forEach(m => {
-                const d = document.createElement('div');
-                d.className = 'result-item';
-                d.textContent = m.name;
-                d.onclick = () => {
-                    document.getElementById('name-search').value = m.name;
-                    document.getElementById('name').value = m.name || "";
-                    document.getElementById('email').value = m.email || "";
-                    document.getElementById('office').value = m.office || "";
-                    document.getElementById('currPos').value = m.currPos || "";
-                    document.getElementById('bio').value = m.bio || "";
-                    document.getElementById('team-form').classList.remove('hidden');
-                    resDiv.style.display = 'none';
-                };
-                resDiv.appendChild(d);
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.textContent = m.name;
+                div.onclick = () => selectMember(m);
+                resultsDiv.appendChild(div);
             });
-            resDiv.style.display = 'block';
+            resultsDiv.style.display = 'block';
+        }
+
+        function selectMember(m) {
+            selectedId = m.id;
+            document.getElementById('name-search').value = m.name;
+            document.getElementById('search-results').style.display = 'none';
+            document.getElementById('main-form').classList.remove('hidden');
+            ['name','office','start','end','pos','country','currPos','topic','email','linkedin','scholar','web','other'].forEach(field => {
+                document.getElementById(field).value = m[field] || "";
+            });
+            const photoEl = document.getElementById('current-photo');
+            photoEl.src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
+            document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function previewPhoto() {
+            const file = document.getElementById('photo-upload').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => document.getElementById('current-photo').src = e.target.result;
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleSubmit() {
+            const btn = document.getElementById('save-btn');
+            const fileInput = document.getElementById('photo-upload');
+            btn.disabled = true;
+            btn.innerText = "Syncing with MYlab Cloud...";
+            let photoBase64 = null;
+            if (fileInput.files.length > 0) {
+                photoBase64 = await new Promise(r => {
+                    const reader = new FileReader();
+                    reader.onload = () => r(reader.result.split(',')[1]);
+                    reader.readAsDataURL(fileInput.files[0]);
+                });
+            }
+            const payload = { id: selectedId, photoData: photoBase64 };
+            ['name','office','start','end','pos','country','currPos','topic','email','linkedin','scholar','web','other'].forEach(f => payload[f] = document.getElementById(f).value);
+            try {
+                await fetch(TEAM_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                alert("Success! Update queued.");
+                btn.innerText = "Update Successful";
+                setTimeout(() => { btn.disabled = false; btn.innerText = "Save and Sync Changes"; }, 3000);
+            } catch (e) { alert("Connection error."); btn.disabled = false; }
         }
 
         // ==========================================
-        // CLEANUP v2.0 STABLE LOGIC
+        // CLEANUP v2.0 LOGIC
         // ==========================================
         let anno = null;
         let currentActiveId = null;
-        let dataCache = {}; 
+        let cleanupCache = {};
 
-        async function initGallery() {
-            const loadMsg = document.getElementById('loading-msg');
+        async function initCleanup() {
             try {
-                const res = await fetch(`${CLEANUP_URL}?imageId=ALL_SAMPLES`);
+                const res = await fetch(`${CLEANUP_SCRIPT_URL}?imageId=ALL_SAMPLES`);
                 const allData = await res.json();
                 allData.forEach(d => {
-                    if (!dataCache[d.imageId]) dataCache[d.imageId] = [];
-                    dataCache[d.imageId].push(d);
+                    if (!cleanupCache[d.imageId]) cleanupCache[d.imageId] = [];
+                    cleanupCache[d.imageId].push(d);
                 });
-                renderCards();
-                document.getElementById('status-bar').innerText = "Gallery Ready";
-                loadMsg.innerText = "← Select a sample to begin identification.";
-            } catch (e) {
-                renderCards();
-                document.getElementById('status-bar').innerText = "Sync Error (Offline)";
-            }
+                renderCleanupCards();
+            } catch (e) { renderCleanupCards(); }
         }
 
-        function renderCards() {
+        function renderCleanupCards() {
             const list = document.getElementById('thumb-list');
             list.innerHTML = ''; 
             for (let i = 1; i <= 57; i++) {
                 const id = `Sample ${i}`;
                 const card = document.createElement('div');
                 card.id = `card-${i}`;
-                
-                const samplesData = dataCache[id] || [];
-                const isDone = samplesData.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
-                const isUnclear = !isDone && samplesData.some(d => d.type === "StatusUpdate");
-
+                const data = cleanupCache[id] || [];
+                const isDone = data.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
+                const isUnclear = !isDone && data.some(d => d.type === "StatusUpdate");
                 card.className = 'thumb-card' + (isDone ? ' processed' : isUnclear ? ' is-unclear' : '');
-                card.innerHTML = `<img src="${FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
-                card.onclick = () => selectImage(id, i);
+                card.innerHTML = `<img src="${IMAGE_FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${IMAGE_FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
+                card.onclick = () => selectCleanupImg(id, i);
                 list.appendChild(card);
             }
         }
 
-        function selectImage(id, index) {
-            currentActiveId = id; 
-            const status = document.getElementById('status-bar');
-            const centerCol = document.getElementById('center-col');
-            const panel = document.getElementById('input-panel');
-            const intro = document.getElementById('intro-overlay');
-            const refPanel = document.getElementById('reference-panel');
-
-            intro.style.display = 'none';
-            centerCol.style.display = 'flex'; 
-            panel.style.display = 'block';
-            document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
-
-            if (anno) { try { anno.destroy(); } catch(e) {} anno = null; }
+        function selectCleanupImg(id, index) {
+            currentActiveId = id;
+            document.getElementById('intro-overlay').style.display = 'none';
+            document.getElementById('center-col').style.display = 'flex';
+            document.getElementById('input-panel').style.display = 'block';
+            if (anno) { anno.destroy(); anno = null; }
             const canvasBox = document.getElementById('canvas-box');
-            canvasBox.innerHTML = ''; 
+            canvasBox.innerHTML = '';
             const img = document.createElement('img');
             img.id = "current-img";
             canvasBox.appendChild(img);
-
             img.onload = () => {
-                if (currentActiveId !== id) return;
                 anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
-                const localData = dataCache[id] || [];
-                anno.setAnnotations(localData.filter(d => d.type !== "StatusUpdate"));
-                status.innerText = `Viewing: ${id}`;
-                anno.on('createAnnotation', (a) => syncToSheet(id, a));
+                const local = cleanupCache[id] || [];
+                anno.setAnnotations(local.filter(d => d.type !== "StatusUpdate"));
+                anno.on('createAnnotation', (a) => syncCleanup(id, a));
             };
-            img.src = `${FOLDER}/${index}.jpg`;
-
+            img.src = `${IMAGE_FOLDER}/${index}.jpg`;
+            const refPanel = document.getElementById('reference-panel');
             refPanel.innerHTML = '';
-            const refs = [`${index}a.jpg`, `${index}b.jpg`];
-            refs.forEach(file => {
-                const refImg = document.createElement('img');
-                refImg.src = `${FOLDER}/${file}`;
-                refImg.className = 'ref-thumb';
-                refImg.onerror = () => refImg.remove(); 
-                refImg.onclick = () => window.open(refImg.src, '_blank');
-                refPanel.appendChild(refImg);
+            [`${index}a.jpg`, `${index}b.jpg`].forEach(file => {
+                const r = document.createElement('img'); r.src = `${IMAGE_FOLDER}/${file}`; r.className = 'ref-thumb';
+                r.onerror = () => r.remove(); r.onclick = () => window.open(r.src); refPanel.appendChild(r);
             });
         }
 
-        async function syncToSheet(id, content) {
-            const status = document.getElementById('status-bar');
-            status.innerText = "Saving Annotation..."; status.classList.add("saving");
-            if (!dataCache[id]) dataCache[id] = [];
-            dataCache[id].push(content);
-            const params = new URLSearchParams();
-            params.append('imageId', id);
-            params.append('annotation', JSON.stringify(content));
-            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-            status.innerText = "Saved!"; status.classList.remove("saving");
+        async function syncCleanup(id, content) {
+            const sb = document.getElementById('status-bar');
+            sb.classList.add("saving");
+            if (!cleanupCache[id]) cleanupCache[id] = [];
+            cleanupCache[id].push(content);
+            const p = new URLSearchParams(); p.append('imageId', id); p.append('annotation', JSON.stringify(content));
+            await fetch(CLEANUP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p.toString() });
+            sb.classList.remove("saving");
         }
 
         async function saveStatus(label) {
-            const status = document.getElementById('status-bar');
-            status.innerText = "Saving Choice..."; status.classList.add("saving");
+            const sb = document.getElementById('status-bar');
+            sb.classList.add("saving");
             const match = currentActiveId.match(/\d+/);
             if(match) {
-                const card = document.getElementById(`card-${match[0]}`);
-                card.classList.remove('processed', 'is-unclear');
-                card.classList.add((label === "Toss everything" || label === "Keep some things") ? 'processed' : 'is-unclear');
+                const c = document.getElementById(`card-${match[0]}`);
+                c.classList.remove('processed', 'is-unclear');
+                c.classList.add((label.includes("everything") || label.includes("some")) ? 'processed' : 'is-unclear');
             }
-            const updateObj = {type: "StatusUpdate", body: label, imageId: currentActiveId};
-            if (!dataCache[currentActiveId]) dataCache[currentActiveId] = [];
-            dataCache[currentActiveId].push(updateObj);
-            const params = new URLSearchParams();
-            params.append('imageId', currentActiveId);
-            params.append('annotation', JSON.stringify(updateObj));
-            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-            status.innerText = "Choice Saved!"; status.classList.remove("saving");
+            const update = {type: "StatusUpdate", body: label, imageId: currentActiveId};
+            cleanupCache[currentActiveId].push(update);
+            const p = new URLSearchParams(); p.append('imageId', currentActiveId); p.append('annotation', JSON.stringify(update));
+            await fetch(CLEANUP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: p.toString() });
+            sb.classList.remove("saving");
         }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) document.getElementById('search-results').style.display = 'none';
+        });
+
+        initTeam();
     </script>
 </body>
 </html>
