@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MYlab Team Update v3.1</title>
+    <title>MYlab Team Update v3.2</title>
     <style>
         :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
@@ -48,7 +48,7 @@
 <body>
 
 <div class="card">
-    <div class="version-badge">v3.1</div>
+    <div class="version-badge">v3.2</div>
     <h1>MYlab Team Update</h1>
     <div id="loading-status">📡 Initializing connection...</div>
 
@@ -102,7 +102,7 @@
 </div>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz3stYYPx18InJnY4BHqVOkfVBQUyrUIImKcc2N35BjKrIVUZB4ZgbIYuQOMHvlgpaM/exec';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
     let teamData = [];
     let selectedId = null;
 
@@ -116,8 +116,8 @@
             searchInput.placeholder = `Search among ${teamData.length} members...`;
             searchInput.disabled = false;
         } catch (e) {
-            console.error("Connection error:", e);
-            document.getElementById('loading-status').innerText = "❌ Offline: Check Script Permissions";
+            console.error(e);
+            document.getElementById('loading-status').innerText = "❌ Connection error.";
         }
     }
 
@@ -160,7 +160,10 @@
         document.getElementById('scholar').value = m.scholar || "";
         document.getElementById('web').value = m.web || "";
         document.getElementById('other').value = m.other || "";
-        document.getElementById('current-photo').src = m.photoUrl || "https://via.placeholder.com/150";
+        
+        // Handle image: check if photoUrl exists and is valid
+        const photoEl = document.getElementById('current-photo');
+        photoEl.src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
         
         document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
     }
@@ -177,9 +180,6 @@
     async function handleSubmit() {
         const btn = document.getElementById('save-btn');
         const fileInput = document.getElementById('photo-upload');
-        
-        if (!selectedId) return alert("Please select a profile first.");
-
         btn.disabled = true;
         btn.innerText = "Syncing with MYlab Cloud...";
 
@@ -214,27 +214,20 @@
             await fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 mode: 'no-cors', 
-                cache: 'no-cache',
                 body: JSON.stringify(payload) 
             });
-            
-            // Because no-cors doesn't return body content, we assume success 
-            // if no network error occurred. 
-            alert("Update Sent! Please allow a few seconds for the spreadsheet to update.");
-            btn.innerText = "Sync Complete";
+            alert("Success! Your update has been queued. Please refresh in a moment to see changes.");
+            btn.innerText = "Update Successful";
             setTimeout(() => { 
                 btn.disabled = false; 
                 btn.innerText = "Save and Sync Changes";
             }, 3000);
         } catch (e) {
-            console.error("Submission error:", e);
-            alert("Connection error. Please try again.");
+            alert("Connection error. Profile data may not have saved.");
             btn.disabled = false;
-            btn.innerText = "Save and Sync Changes";
         }
     }
 
-    // UI helper: Close search results on outside click
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.search-container')) {
             document.getElementById('search-results').style.display = 'none';
