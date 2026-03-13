@@ -12,19 +12,6 @@
         h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
         p.intro { text-align: center; margin-bottom: 30px; color: #607d8b; }
 
-        /* Searchable Select Styling */
-        .search-container { position: relative; margin-bottom: 25px; }
-        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; transition: 0.2s; }
-        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 4px 12px rgba(30, 136, 229, 0.1); }
-        
-        #search-results { 
-            position: absolute; width: 100%; max-height: 200px; background: white; 
-            border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; 
-            z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none;
-        }
-        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
-        .result-item:hover { background: #f1f8ff; color: var(--accent); }
-
         .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
         
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -32,17 +19,18 @@
         .full-width { grid-column: span 2; }
         
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
-        
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
+        input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.1); }
+
         .photo-preview-wrap { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
         #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
         .upload-btn { display: inline-block; margin-top: 10px; color: var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: bold; text-decoration: underline; }
 
         .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
-        .btn-save:hover { background: #0d1440; }
-        .btn-save:disabled { background: #90a4ae; }
+        .btn-save:hover { background: #0d1440; box-shadow: 0 4px 12px rgba(26, 35, 126, 0.2); }
+        .btn-save:disabled { background: #90a4ae; cursor: not-allowed; }
 
-        #status-msg { text-align: center; margin-top: 20px; font-weight: bold; }
+        #status-msg { text-align: center; margin-top: 20px; font-weight: bold; font-size: 0.95rem; }
         .saving { color: #f57c00; animation: pulse 1.5s infinite; }
         .success { color: #2e7d32; }
         .hidden { display: none; }
@@ -54,12 +42,13 @@
 
 <div class="card">
     <h1>MYlab Team Update</h1>
-    <p class="intro">Search for your name to begin updating your profile.</p>
+    <p class="intro">Please select your name and verify your information for the Alumni Directory.</p>
 
-    <div class="search-container">
-        <label>Search Your Name</label>
-        <input type="text" id="name-search" placeholder="Type to search..." autocomplete="off" oninput="filterNames()">
-        <div id="search-results"></div>
+    <div class="form-group">
+        <label>Select Your Name</label>
+        <select id="member-select" onchange="onMemberChange()">
+            <option value="" disabled selected>Loading team list...</option>
+        </select>
     </div>
 
     <div id="main-form" class="hidden">
@@ -75,4 +64,145 @@
         <div class="section-title">Lab History</div>
         <div class="grid">
             <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
-            <div class="form-group"><label>Office Number</label><input type="text" id="office">
+            <div class="form-group"><label>Office Number</label><input type="text" id="office"></div>
+            <div class="form-group"><label>Start Date (MM/YY)</label><input type="text" id="start"></div>
+            <div class="form-group"><label>End Date (MM/YY)</label><input type="text" id="end"></div>
+            <div class="form-group full-width"><label>Position at MYlab</label><input type="text" id="pos"></div>
+        </div>
+
+        <div class="section-title">Current Professional Status</div>
+        <div class="grid">
+            <div class="form-group"><label>Country</label><input type="text" id="country"></div>
+            <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
+            <div class="form-group full-width"><label>Current Work Topic</label><input type="text" id="topic"></div>
+        </div>
+
+        <div class="section-title">Digital & Social Links</div>
+        <div class="grid">
+            <div class="form-group"><label>Email</label><input type="email" id="email"></div>
+            <div class="form-group"><label>LinkedIn URL</label><input type="text" id="linkedin"></div>
+            <div class="form-group"><label>Google Scholar</label><input type="text" id="scholar"></div>
+            <div class="form-group"><label>Website</label><input type="text" id="web"></div>
+        </div>
+
+        <div class="section-title">Additional Information</div>
+        <div class="form-group">
+            <label>Notes / Personal Updates</label>
+            <textarea id="other" rows="3" placeholder="Anything else you'd like to share?"></textarea>
+        </div>
+
+        <button id="save-btn" class="btn-save" onclick="handleSubmit()">Sync to MYlab Database</button>
+        <div id="status-msg"></div>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQxAhPaFL7LQyxoSFuJrop_TawJ8PmROybD626iEmsg7s-Rdem0soS-IyhiQYx2pPs/exec';
+    let teamData = [];
+
+    async function init() {
+        const select = document.getElementById('member-select');
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getList`);
+            teamData = await res.json();
+            select.innerHTML = '<option value="" disabled selected>Choose your name...</option>';
+            teamData.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            document.getElementById('status-msg').innerText = "Connection failed. Please check your Script URL.";
+        }
+    }
+
+    function onMemberChange() {
+        const id = document.getElementById('member-select').value;
+        const m = teamData.find(x => x.id == id);
+        if (m) {
+            document.getElementById('main-form').classList.remove('hidden');
+            document.getElementById('name').value = m.name || "";
+            document.getElementById('office').value = m.office || "";
+            document.getElementById('start').value = m.start || "";
+            document.getElementById('end').value = m.end || "";
+            document.getElementById('pos').value = m.pos || "";
+            document.getElementById('country').value = m.country || "";
+            document.getElementById('currPos').value = m.currPos || "";
+            document.getElementById('topic').value = m.topic || "";
+            document.getElementById('email').value = m.email || "";
+            document.getElementById('linkedin').value = m.linkedin || "";
+            document.getElementById('scholar').value = m.scholar || "";
+            document.getElementById('web').value = m.web || "";
+            document.getElementById('other').value = m.other || "";
+            document.getElementById('current-photo').src = m.photoUrl;
+        }
+    }
+
+    function previewPhoto() {
+        const file = document.getElementById('photo-upload').files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => document.getElementById('current-photo').src = e.target.result;
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function handleSubmit() {
+        const btn = document.getElementById('save-btn');
+        const status = document.getElementById('status-msg');
+        const fileInput = document.getElementById('photo-upload');
+        
+        btn.disabled = true;
+        status.innerText = "Syncing with MYlab Cloud...";
+        status.className = "saving";
+
+        const payload = {
+            id: document.getElementById('member-select').value,
+            name: document.getElementById('name').value,
+            office: document.getElementById('office').value,
+            start: document.getElementById('start').value,
+            end: document.getElementById('end').value,
+            pos: document.getElementById('pos').value,
+            country: document.getElementById('country').value,
+            currPos: document.getElementById('currPos').value,
+            topic: document.getElementById('topic').value,
+            email: document.getElementById('email').value,
+            linkedin: document.getElementById('linkedin').value,
+            scholar: document.getElementById('scholar').value,
+            web: document.getElementById('web').value,
+            other: document.getElementById('other').value,
+            photoData: null,
+            photoName: null
+        };
+
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            payload.photoName = file.name;
+            payload.photoData = await new Promise(r => {
+                const reader = new FileReader();
+                reader.onload = () => r(reader.result.split(',')[1]);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        try {
+            const response = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify(payload) 
+            });
+            status.innerText = "Success! Information synchronized.";
+            status.className = "success";
+            setTimeout(() => { btn.disabled = false; }, 3000);
+        } catch (e) {
+            status.innerText = "Error during sync. Please try again.";
+            status.className = "";
+            btn.disabled = false;
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
