@@ -7,279 +7,349 @@
     <link rel="stylesheet" href="./annotorious.min.css">
     
     <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; --bg: #f0f2f5; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        /* ========================================== */
+        /* SHARED & SWITCHBOARD CSS                   */
+        /* ========================================== */
+        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f0f2f5; --success: #2e7d32; --unclear: #ff9800; --warning: #d32f2f; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* --- PHASE 1: TEAM DIRECTORY STYLES --- */
-        #team-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; display: flex; justify-content: center; align-items: flex-start; padding-top: 50px; overflow-y: auto; }
-        .team-card { background: white; padding: 40px; border-radius: 12px; width: 100%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--primary); }
+        #team-app { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; overflow-y: auto; padding-top: 40px; }
+        #cleanup-app { display: none; width: 100%; height: 100%; }
+        .hidden { display: none !important; }
+
+        /* ========================================== */
+        /* TEAM DIRECTORY CSS                         */
+        /* ========================================== */
+        .team-container { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; }
+        .team-card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border-top: 8px solid var(--primary); position: relative; }
+        
+        #connection-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 0 0 12px 12px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .search-container { position: relative; margin-bottom: 25px; }
-        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; }
-        #search-results { position: absolute; width: 100%; max-height: 200px; background: white; border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; z-index: 100; display: none; }
+        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        #search-results { position: absolute; width: 100%; max-height: 200px; background: white; border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
         .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; }
         .result-item:hover { background: #f1f8ff; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .full-width { grid-column: span 2; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
-        input { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; }
-        .photo-preview-wrap { text-align: center; margin-bottom: 20px; }
-        #current-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #eee; }
-        .btn-continue { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 20px; }
+        .team-card label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
+        .team-card input, .team-card textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
+        .team-card textarea { resize: vertical; min-height: 80px; }
+        
+        .btn-continue { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.2rem; margin-top: 30px; transition: 0.3s; }
+        .btn-continue:hover { background: #0d1440; }
 
-        /* --- PHASE 2: CLEANUP STYLES (v2.0 Stable) --- */
-        #cleanup-container { display: none; height: 100vh; width: 100%; flex-direction: row; }
+        /* ========================================== */
+        /* CLEANUP v2.0 STABLE CSS                    */
+        /* ========================================== */
         #sidebar { width: 280px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
-        .return-link { color: var(--accent); cursor: pointer; font-size: 0.85rem; font-weight: bold; text-decoration: underline; display: block; margin-bottom: 15px; }
+        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.3rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; cursor: pointer; transition: 0.2s; }
+        #sidebar h2:hover { color: var(--accent); }
         
-        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; position: relative; overflow: hidden; }
+        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        .thumb-card:hover { border-color: var(--accent); }
         .thumb-card.processed { border: 3px solid var(--success) !important; }
-        .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; }
+        .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
         .thumb-card.is-unclear { border: 3px solid var(--unclear) !important; }
-        .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; }
+        .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+
         .thumb-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
-        .thumb-info { padding: 6px; font-size: 11px; text-align: center; font-weight: bold; background: #fafafa; }
+        .thumb-info { padding: 6px; font-size: 12px; text-align: center; font-weight: bold; color: #455a64; background: #fafafa; }
 
-        #main-workspace { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; }
-        #status-bar { padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 13px; font-weight: 600; align-self: center; margin-bottom: 10px; }
-        .saving { color: #f57c00; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        #main-container { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; }
+        #status-bar { padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 13px; font-weight: 600; align-self: center; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .saving { color: #f57c00; animation: pulse 1.5s infinite; border-color: #f57c00 !important; }
 
-        #canvas-area { display: flex; gap: 20px; justify-content: center; height: 100%; }
-        #center-col { flex-grow: 1; max-width: 800px; display: none; }
-        #canvas-box { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        #current-img { width: 100%; max-height: 60vh; border-radius: 4px; }
-        #reference-panel { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .ref-thumb { width: 150px; height: 100px; object-fit: cover; border-radius: 4px; cursor: zoom-in; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-        #input-panel { width: 280px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; align-self: flex-start; }
-        .radio-group { display: flex; flex-direction: column; gap: 10px; }
+        #workspace { display: flex; gap: 20px; justify-content: center; align-items: flex-start; height: 90vh; }
         
-        .hidden { display: none; }
+        #center-col { display: flex; flex-direction: column; gap: 15px; max-width: 65%; display: none; }
+        #canvas-box { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        #current-img { width: 100%; max-height: 60vh; display: block; border-radius: 4px; }
+
+        #reference-panel { display: flex; gap: 10px; justify-content: center; }
+        .ref-thumb { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s; }
+        .ref-thumb:hover { transform: scale(1.05); }
+
+        #input-panel { width: 320px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #cfd8dc; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: none; }
+        .radio-group { display: flex; flex-direction: column; gap: 12px; }
+        .radio-option { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: 13px; color: #37474f; padding: 8px; border-radius: 6px; }
+        .radio-option:hover { background: #f8f9fa; }
+        
+        #intro-overlay { text-align: center; max-width: 600px; background: #fff; padding: 40px; border-radius: 15px; border-top: 8px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 50px; }
+        .warning-text { color: var(--warning); font-weight: bold; margin: 20px 0; border: 2px dashed var(--warning); padding: 12px; border-radius: 8px; background: #fff8f8; font-size: 14px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-<div id="team-overlay">
-    <div class="team-card">
-        <h1 style="margin-top:0; color:var(--primary); text-align:center;">Team Directory</h1>
-        <div class="search-container">
-            <label>Find Your Profile</label>
-            <input type="text" id="name-search" placeholder="Start typing your name..." oninput="filterTeam()">
-            <div id="search-results"></div>
-        </div>
+    <div id="team-app">
+        <div class="team-container">
+            <h1 style="color: var(--primary); text-align: center; margin-bottom: 30px;">MYlab Team Directory</h1>
+            
+            <div class="team-card">
+                <div id="connection-overlay">
+                    <div class="spinner"></div>
+                    <h3 style="color: var(--primary); margin: 0;">Initializing Secure Session...</h3>
+                    <p style="color: #607d8b; font-size: 0.9rem;">Fetching records...</p>
+                </div>
 
-        <div id="team-form" class="hidden">
-            <div class="photo-preview-wrap">
-                <img id="current-photo" src="https://via.placeholder.com/150">
-            </div>
-            <div class="grid">
-                <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
-                <div class="form-group"><label>Office</label><input type="text" id="office"></div>
-                <div class="form-group"><label>Start (MM/YY)</label><input type="text" id="start"></div>
-                <div class="form-group"><label>End (MM/YY)</label><input type="text" id="end"></div>
-                <div class="form-group full-width"><label>Current Position</label><input type="text" id="currPos"></div>
-                <div class="form-group full-width"><label>Email</label><input type="email" id="email"></div>
-            </div>
-            <button class="btn-continue" onclick="transitionToCleanup()">Continue to Sample Cleanup</button>
-        </div>
-    </div>
-</div>
+                <div class="search-container">
+                    <label>Find Your Profile</label>
+                    <input type="text" id="name-search" placeholder="Enter name to start..." autocomplete="off" oninput="filterTeam()">
+                    <div id="search-results"></div>
+                </div>
 
-<div id="cleanup-container">
-    <div id="sidebar">
-        <div class="return-link" onclick="returnToTeam()">← return to personal information</div>
-        <h2 style="font-size: 1.1rem; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 5px;">NMElab Cleanup</h2>
-        <div id="thumb-list"></div>
-    </div>
-
-    <div id="main-workspace">
-        <div id="status-bar">Gallery Ready</div>
-        <div id="canvas-area">
-            <div id="center-col">
-                <div id="canvas-box"></div>
-                <div id="reference-panel"></div>
-            </div>
-
-            <div id="input-panel">
-                <h3 style="margin-top:0; font-size: 1rem;">Sample Status</h3>
-                <div class="radio-group">
-                    <label><input type="radio" name="status" onclick="saveStatus('Toss everything')"> Toss everything.</label>
-                    <label><input type="radio" name="status" onclick="saveStatus('Keep some things')"> Keep some things.</label>
-                    <label><input type="radio" name="status" onclick="saveStatus('Potentially useful')"> Might be useful.</label>
-                    <label><input type="radio" name="status" onclick="saveStatus('Unknown/Not mine')"> I don't know this.</label>
+                <div id="team-form" class="hidden">
+                    <div class="grid">
+                        <div class="form-group"><label>Name</label><input type="text" id="name"></div>
+                        <div class="form-group"><label>Email</label><input type="email" id="email"></div>
+                        <div class="form-group"><label>Office</label><input type="text" id="office"></div>
+                        <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
+                        <div class="form-group full-width"><label>Bio</label><textarea id="bio"></textarea></div>
+                    </div>
+                    <button class="btn-continue" onclick="switchToCleanup()">Continue</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="./annotorious.min.js"></script>
-<script>
-    // URL CONFIG
-    const TEAM_URL = 'https://script.google.com/macros/s/AKfycbzziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
-    const CLEANUP_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
-    const IMAGE_FOLDER = './images';
+    <div id="cleanup-app">
+        <div id="sidebar">
+            <h2 title="Return to Team Directory" onclick="switchToTeam()">← Return to Profile</h2>
+            <div id="thumb-list"></div>
+        </div>
 
-    let teamData = [];
-    let selectedTeamId = null;
-    let anno = null;
-    let currentActiveId = null;
-    let dataCache = {};
+        <div id="main-container">
+            <div id="status-bar">Syncing with Lab Records...</div>
 
-    // --- TEAM LOGIC ---
-    async function loadTeamData() {
-        try {
-            const res = await fetch(`${TEAM_URL}?action=getList`);
-            teamData = await res.json();
-        } catch (e) { console.error("Team load error"); }
-    }
+            <div id="workspace">
+                <div id="intro-overlay">
+                    <h1>Welcome to NMElab Cleanup</h1>
+                    <p>Help identify contents by annotating the zoomed-in photos.</p>
+                    <div class="warning-text">Wait for the orange "Saving" pulse before switching samples.</div>
+                    <p id="loading-msg" style="color: #78909c;">Fetching data...</p>
+                </div>
 
-    function filterTeam() {
-        const query = document.getElementById('name-search').value.toLowerCase();
-        const results = document.getElementById('search-results');
-        results.innerHTML = '';
-        if (query.length < 1) { results.style.display = 'none'; return; }
-        const filtered = teamData.filter(m => m.name.toLowerCase().includes(query));
-        filtered.forEach(m => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            div.textContent = m.name;
-            div.onclick = () => {
-                selectedTeamId = m.id;
-                document.getElementById('name-search').value = m.name;
-                document.getElementById('name').value = m.name;
-                document.getElementById('office').value = m.office || "";
-                document.getElementById('start').value = m.start || "";
-                document.getElementById('end').value = m.end || "";
-                document.getElementById('currPos').value = m.currPos || "";
-                document.getElementById('email').value = m.email || "";
-                document.getElementById('current-photo').src = m.photoUrl || "https://via.placeholder.com/150";
-                document.getElementById('team-form').classList.remove('hidden');
-                results.style.display = 'none';
-            };
-            results.appendChild(div);
-        });
-        results.style.display = 'block';
-    }
+                <div id="center-col">
+                    <div id="canvas-box"></div>
+                    <div id="reference-panel"></div>
+                </div>
 
-    async function transitionToCleanup() {
-        // Sync Team Data first
-        const payload = {
-            id: selectedTeamId,
-            name: document.getElementById('name').value,
-            office: document.getElementById('office').value,
-            start: document.getElementById('start').value,
-            end: document.getElementById('end').value,
-            currPos: document.getElementById('currPos').value,
-            email: document.getElementById('email').value
+                <div id="input-panel">
+                    <h3 style="margin-top:0; color:var(--primary); font-size: 1.1rem;">Sample Status</h3>
+                    <div class="radio-group">
+                        <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Toss everything')"><span>Toss everything.</span></label>
+                        <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Keep some things')"><span>Keep some things.</span></label>
+                        <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Potentially useful')"><span>Might be useful.</span></label>
+                        <label class="radio-option"><input type="radio" name="status" onclick="saveStatus('Unknown/Not mine')"><span>I don't know this.</span></label>
+                    </div>
+                    <p style="font-size: 11px; color: #90a4ae; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">
+                        Drawings are saved automatically.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./annotorious.min.js"></script>
+    <script>
+        // ==========================================
+        // CONFIG & SWITCHBOARD LOGIC
+        // ==========================================
+        const TEAM_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
+        const CLEANUP_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
+        const FOLDER = './images'; 
+        
+        let isCleanupLoaded = false;
+
+        function switchToCleanup() {
+            document.getElementById('team-app').style.display = 'none';
+            document.getElementById('cleanup-app').style.display = 'flex';
+            
+            if (!isCleanupLoaded) {
+                initGallery();
+                isCleanupLoaded = true;
+            }
+        }
+
+        function switchToTeam() {
+            document.getElementById('cleanup-app').style.display = 'none';
+            document.getElementById('team-app').style.display = 'flex';
+        }
+
+        // ==========================================
+        // TEAM DIRECTORY LOGIC
+        // ==========================================
+        let teamData = [
+            // Pre-filled fallback profile for fast testing/offline support
+            { id: "1", name: "Mario Hofmann", email: "mario@mylab.tw", office: "Main Lab", currPos: "Research Scientist", bio: "Research Scientist focusing on 2D materials" }
+        ];
+
+        window.onload = () => {
+            // Simulate the "Secure Session" connection message delay, then load data
+            setTimeout(() => {
+                fetchTeamData();
+            }, 1200);
         };
-        fetch(TEAM_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
 
-        // Switch UI
-        document.getElementById('team-overlay').style.display = 'none';
-        document.getElementById('cleanup-container').style.display = 'flex';
-        initCleanupGallery();
-    }
+        async function fetchTeamData() {
+            try {
+                const res = await fetch(`${TEAM_URL}?action=getList`);
+                if(res.ok) { teamData = await res.json(); }
+            } catch (e) {
+                console.warn("Using offline fallback team data.");
+            } finally {
+                // Remove the connection overlay
+                document.getElementById('connection-overlay').style.display = 'none';
+            }
+        }
 
-    function returnToTeam() {
-        document.getElementById('cleanup-container').style.display = 'none';
-        document.getElementById('team-overlay').style.display = 'flex';
-    }
+        function filterTeam() {
+            const query = document.getElementById('name-search').value.toLowerCase();
+            const resDiv = document.getElementById('search-results');
+            resDiv.innerHTML = '';
+            if (query.length < 1) { resDiv.style.display = 'none'; return; }
 
-    // --- CLEANUP v2.0 STABLE LOGIC ---
-    async function initCleanupGallery() {
-        document.getElementById('status-bar').innerText = "Loading Lab Records...";
-        try {
-            const res = await fetch(`${CLEANUP_URL}?imageId=ALL_SAMPLES`);
-            const allData = await res.json();
-            allData.forEach(d => {
-                if (!dataCache[d.imageId]) dataCache[d.imageId] = [];
-                dataCache[d.imageId].push(d);
+            const filtered = teamData.filter(m => m.name.toLowerCase().includes(query));
+            filtered.forEach(m => {
+                const d = document.createElement('div');
+                d.className = 'result-item';
+                d.textContent = m.name;
+                d.onclick = () => {
+                    document.getElementById('name-search').value = m.name;
+                    document.getElementById('name').value = m.name || "";
+                    document.getElementById('email').value = m.email || "";
+                    document.getElementById('office').value = m.office || "";
+                    document.getElementById('currPos').value = m.currPos || "";
+                    document.getElementById('bio').value = m.bio || "";
+                    document.getElementById('team-form').classList.remove('hidden');
+                    resDiv.style.display = 'none';
+                };
+                resDiv.appendChild(d);
             });
-            renderCards();
-            document.getElementById('status-bar').innerText = "Gallery Ready";
-        } catch (e) { renderCards(); }
-    }
-
-    function renderCards() {
-        const list = document.getElementById('thumb-list');
-        list.innerHTML = '';
-        for (let i = 1; i <= 57; i++) {
-            const id = `Sample ${i}`;
-            const samplesData = dataCache[id] || [];
-            const isDone = samplesData.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
-            const isUnclear = !isDone && samplesData.some(d => d.type === "StatusUpdate");
-
-            const card = document.createElement('div');
-            card.id = `card-${i}`;
-            card.className = 'thumb-card' + (isDone ? ' processed' : isUnclear ? ' is-unclear' : '');
-            card.innerHTML = `<img src="${IMAGE_FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${IMAGE_FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
-            card.onclick = () => selectImage(id, i);
-            list.appendChild(card);
+            resDiv.style.display = 'block';
         }
-    }
 
-    function selectImage(id, index) {
-        currentActiveId = id;
-        document.getElementById('center-col').style.display = 'block';
-        document.getElementById('input-panel').style.display = 'block';
-        document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
+        // ==========================================
+        // CLEANUP v2.0 STABLE LOGIC
+        // ==========================================
+        let anno = null;
+        let currentActiveId = null;
+        let dataCache = {}; 
 
-        if (anno) { try { anno.destroy(); } catch(e) {} }
-        const canvasBox = document.getElementById('canvas-box');
-        canvasBox.innerHTML = '';
-        const img = document.createElement('img');
-        img.id = "current-img";
-        canvasBox.appendChild(img);
-
-        img.onload = () => {
-            anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
-            const localData = dataCache[id] || [];
-            anno.setAnnotations(localData.filter(d => d.type !== "StatusUpdate"));
-            anno.on('createAnnotation', (a) => syncToSheet(id, a));
-        };
-        img.src = `${IMAGE_FOLDER}/${index}.jpg`;
-
-        const refPanel = document.getElementById('reference-panel');
-        refPanel.innerHTML = '';
-        [`${index}a.jpg`, `${index}b.jpg`].forEach(file => {
-            const refImg = document.createElement('img');
-            refImg.src = `${IMAGE_FOLDER}/${file}`;
-            refImg.className = 'ref-thumb';
-            refImg.onerror = () => refImg.remove();
-            refImg.onclick = () => window.open(refImg.src, '_blank');
-            refPanel.appendChild(refImg);
-        });
-    }
-
-    async function syncToSheet(id, content) {
-        const status = document.getElementById('status-bar');
-        status.innerText = "Saving Annotation..."; status.classList.add("saving");
-        const params = new URLSearchParams();
-        params.append('imageId', id);
-        params.append('annotation', JSON.stringify(content));
-        await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-        status.innerText = "Saved!"; status.classList.remove("saving");
-    }
-
-    async function saveStatus(label) {
-        const status = document.getElementById('status-bar');
-        status.innerText = "Saving Choice..."; status.classList.add("saving");
-        const match = currentActiveId.match(/\d+/);
-        if(match) {
-            const card = document.getElementById(`card-${match[0]}`);
-            card.classList.remove('processed', 'is-unclear');
-            card.classList.add((label === "Toss everything" || label === "Keep some things") ? 'processed' : 'is-unclear');
+        async function initGallery() {
+            const loadMsg = document.getElementById('loading-msg');
+            try {
+                const res = await fetch(`${CLEANUP_URL}?imageId=ALL_SAMPLES`);
+                const allData = await res.json();
+                allData.forEach(d => {
+                    if (!dataCache[d.imageId]) dataCache[d.imageId] = [];
+                    dataCache[d.imageId].push(d);
+                });
+                renderCards();
+                document.getElementById('status-bar').innerText = "Gallery Ready";
+                loadMsg.innerText = "← Select a sample to begin identification.";
+            } catch (e) {
+                renderCards();
+                document.getElementById('status-bar').innerText = "Sync Error (Offline)";
+            }
         }
-        const updateObj = {type: "StatusUpdate", body: label, imageId: currentActiveId};
-        const params = new URLSearchParams();
-        params.append('imageId', currentActiveId);
-        params.append('annotation', JSON.stringify(updateObj));
-        await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
-        status.innerText = "Choice Saved!"; status.classList.remove("saving");
-    }
 
-    loadTeamData();
-</script>
+        function renderCards() {
+            const list = document.getElementById('thumb-list');
+            list.innerHTML = ''; 
+            for (let i = 1; i <= 57; i++) {
+                const id = `Sample ${i}`;
+                const card = document.createElement('div');
+                card.id = `card-${i}`;
+                
+                const samplesData = dataCache[id] || [];
+                const isDone = samplesData.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
+                const isUnclear = !isDone && samplesData.some(d => d.type === "StatusUpdate");
+
+                card.className = 'thumb-card' + (isDone ? ' processed' : isUnclear ? ' is-unclear' : '');
+                card.innerHTML = `<img src="${FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
+                card.onclick = () => selectImage(id, i);
+                list.appendChild(card);
+            }
+        }
+
+        function selectImage(id, index) {
+            currentActiveId = id; 
+            const status = document.getElementById('status-bar');
+            const centerCol = document.getElementById('center-col');
+            const panel = document.getElementById('input-panel');
+            const intro = document.getElementById('intro-overlay');
+            const refPanel = document.getElementById('reference-panel');
+
+            intro.style.display = 'none';
+            centerCol.style.display = 'flex'; 
+            panel.style.display = 'block';
+            document.querySelectorAll('input[name="status"]').forEach(r => r.checked = false);
+
+            if (anno) { try { anno.destroy(); } catch(e) {} anno = null; }
+            const canvasBox = document.getElementById('canvas-box');
+            canvasBox.innerHTML = ''; 
+            const img = document.createElement('img');
+            img.id = "current-img";
+            canvasBox.appendChild(img);
+
+            img.onload = () => {
+                if (currentActiveId !== id) return;
+                anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
+                const localData = dataCache[id] || [];
+                anno.setAnnotations(localData.filter(d => d.type !== "StatusUpdate"));
+                status.innerText = `Viewing: ${id}`;
+                anno.on('createAnnotation', (a) => syncToSheet(id, a));
+            };
+            img.src = `${FOLDER}/${index}.jpg`;
+
+            refPanel.innerHTML = '';
+            const refs = [`${index}a.jpg`, `${index}b.jpg`];
+            refs.forEach(file => {
+                const refImg = document.createElement('img');
+                refImg.src = `${FOLDER}/${file}`;
+                refImg.className = 'ref-thumb';
+                refImg.onerror = () => refImg.remove(); 
+                refImg.onclick = () => window.open(refImg.src, '_blank');
+                refPanel.appendChild(refImg);
+            });
+        }
+
+        async function syncToSheet(id, content) {
+            const status = document.getElementById('status-bar');
+            status.innerText = "Saving Annotation..."; status.classList.add("saving");
+            if (!dataCache[id]) dataCache[id] = [];
+            dataCache[id].push(content);
+            const params = new URLSearchParams();
+            params.append('imageId', id);
+            params.append('annotation', JSON.stringify(content));
+            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
+            status.innerText = "Saved!"; status.classList.remove("saving");
+        }
+
+        async function saveStatus(label) {
+            const status = document.getElementById('status-bar');
+            status.innerText = "Saving Choice..."; status.classList.add("saving");
+            const match = currentActiveId.match(/\d+/);
+            if(match) {
+                const card = document.getElementById(`card-${match[0]}`);
+                card.classList.remove('processed', 'is-unclear');
+                card.classList.add((label === "Toss everything" || label === "Keep some things") ? 'processed' : 'is-unclear');
+            }
+            const updateObj = {type: "StatusUpdate", body: label, imageId: currentActiveId};
+            if (!dataCache[currentActiveId]) dataCache[currentActiveId] = [];
+            dataCache[currentActiveId].push(updateObj);
+            const params = new URLSearchParams();
+            params.append('imageId', currentActiveId);
+            params.append('annotation', JSON.stringify(updateObj));
+            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', keepalive: true, body: params.toString() });
+            status.innerText = "Choice Saved!"; status.classList.remove("saving");
+        }
+    </script>
 </body>
 </html>
