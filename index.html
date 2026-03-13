@@ -1,238 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MYlab Team Update v3.0</title>
-    <style>
-        :root { --primary: #1a237e; --accent: #1e88e5; --bg: #f4f7f9; --text: #37474f; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; position: relative; }
-        h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
-        .version-badge { position: absolute; top: 15px; right: 20px; font-size: 0.75rem; color: #90a4ae; font-weight: bold; background: #eceff1; padding: 3px 8px; border-radius: 12px; }
+/**
+ * MYlab Alumni & Team Update System - Backend v3.0
+ * Configuration:
+ */
+const CONFIG = {
+  SHEET_NAME: 'Members',
+  PHOTO_FOLDER_ID: '1UjJ1kotuHIYTUdz3G1Q2G6o0Up4AgzkT'
+};
 
-        /* Search Styles */
-        .search-container { position: relative; margin-bottom: 25px; }
-        #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
-        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 8px rgba(30,136,229,0.2); }
-        
-        #search-results { 
-            position: absolute; width: 100%; max-height: 200px; background: white; 
-            border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; 
-            z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none;
-        }
-        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
-        .result-item:hover { background: #f1f8ff; color: var(--accent); }
-
-        /* Form Layout */
-        .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { margin-bottom: 15px; }
-        .full-width { grid-column: span 2; }
-        
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.85rem; color: #455a64; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #cfd8dc; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
-        
-        .photo-preview-wrap { text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px; margin-bottom: 20px; }
-        #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
-        
-        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
-        .btn-save:hover { background: #0d1440; }
-        .btn-save:disabled { background: #90a4ae; cursor: not-allowed; }
-
-        .hidden { display: none; }
-        #loading-status { text-align: center; font-weight: bold; padding: 10px; color: var(--primary); }
-    </style>
-</head>
-<body>
-
-<div class="card">
-    <div class="version-badge">v3.0</div>
-    <h1>MYlab Team Update</h1>
-    <div id="loading-status">📡 Initializing connection...</div>
-
-    <div class="search-container">
-        <label>Find Your Profile</label>
-        <input type="text" id="name-search" placeholder="Type your name to begin..." autocomplete="off" oninput="filterNames()" disabled>
-        <div id="search-results"></div>
-    </div>
-
-    <div id="main-form" class="hidden">
-        <div class="photo-preview-wrap">
-            <img id="current-photo" src="https://via.placeholder.com/150" alt="Profile Photo">
-            <br>
-            <label style="cursor:pointer; color:var(--accent); font-weight:bold; font-size:0.8rem; text-decoration: underline;">
-                Upload New Photo
-                <input type="file" id="photo-upload" accept="image/*" class="hidden" onchange="previewPhoto()">
-            </label>
-        </div>
-
-        <div class="section-title">Lab History</div>
-        <div class="grid">
-            <div class="form-group"><label>Full Name</label><input type="text" id="name"></div>
-            <div class="form-group"><label>Office Number</label><input type="text" id="office"></div>
-            <div class="form-group"><label>Start Date (MM/YY)</label><input type="text" id="start"></div>
-            <div class="form-group"><label>End Date (MM/YY)</label><input type="text" id="end"></div>
-            <div class="form-group full-width"><label>Position at MYlab</label><input type="text" id="pos"></div>
-        </div>
-
-        <div class="section-title">Current Status</div>
-        <div class="grid">
-            <div class="form-group"><label>Country</label><input type="text" id="country"></div>
-            <div class="form-group"><label>Current Position</label><input type="text" id="currPos"></div>
-            <div class="form-group full-width"><label>Current Work Topic</label><input type="text" id="topic"></div>
-        </div>
-
-        <div class="section-title">Links & Contact</div>
-        <div class="grid">
-            <div class="form-group"><label>Email</label><input type="email" id="email"></div>
-            <div class="form-group"><label>LinkedIn URL</label><input type="text" id="linkedin"></div>
-            <div class="form-group"><label>Google Scholar</label><input type="text" id="scholar"></div>
-            <div class="form-group"><label>Personal Website</label><input type="text" id="web"></div>
-        </div>
-
-        <div class="section-title">Additional Info</div>
-        <div class="form-group">
-            <textarea id="other" rows="3" placeholder="Notes or personal updates..."></textarea>
-        </div>
-
-        <button id="save-btn" class="btn-save" onclick="handleSubmit()">Save and Sync Changes</button>
-    </div>
-</div>
-
-<script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwAfvpvFPHB51rvwsLhg23HWLUxrU_52e1VVvX-R0bqEJnrRYP6eZKwOtfQpwslcWEN/exec';
-    let teamData = [];
-    let selectedId = null;
-
-    async function init() {
-        try {
-            const res = await fetch(`${SCRIPT_URL}?action=getList`);
-            teamData = await res.json();
-            
-            document.getElementById('loading-status').innerText = "✅ Database Connected";
-            const searchInput = document.getElementById('name-search');
-            searchInput.placeholder = `Search among ${teamData.length} members...`;
-            searchInput.disabled = false;
-        } catch (e) {
-            console.error(e);
-            document.getElementById('loading-status').innerText = "❌ Connection failed. Please check your Script URL.";
-        }
+/**
+ * GET Request: Fetches the member list for the search bar
+ */
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+    
+    if (!sheet) {
+      return createResponse("Error: Sheet '" + CONFIG.SHEET_NAME + "' not found.", "text");
     }
 
-    function filterNames() {
-        const query = document.getElementById('name-search').value.toLowerCase();
-        const resultsDiv = document.getElementById('search-results');
-        resultsDiv.innerHTML = '';
-        if (query.length < 1) { resultsDiv.style.display = 'none'; return; }
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const rows = data.slice(1);
 
-        const filtered = teamData.filter(m => m.name.toLowerCase().includes(query));
-        if (filtered.length > 0) {
-            filtered.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'result-item';
-                div.textContent = m.name;
-                div.onclick = () => selectMember(m);
-                resultsDiv.appendChild(div);
-            });
-            resultsDiv.style.display = 'block';
-        }
+    const list = rows.map(row => ({
+      id: row[0],
+      name: row[1],
+      office: row[2],
+      start: row[3],
+      end: row[4],
+      pos: row[5],
+      country: row[6],
+      currPos: row[7],
+      topic: row[8],
+      email: row[9],
+      linkedin: row[10],
+      scholar: row[11],
+      web: row[12],
+      other: row[13],
+      photoUrl: row[15] || "https://via.placeholder.com/150" // Column P
+    }));
+
+    return createResponse(JSON.stringify(list), "json");
+
+  } catch (err) {
+    return createResponse("GET Error: " + err.toString(), "text");
+  }
+}
+
+/**
+ * POST Request: Handles the profile updates and image uploads
+ */
+function doPost(e) {
+  console.log("Post received.");
+  
+  try {
+    if (!e || !e.postData || !e.postData.contents) {
+      throw new Error("No data received by the server.");
     }
 
-    function selectMember(m) {
-        selectedId = m.id;
-        document.getElementById('name-search').value = m.name;
-        document.getElementById('search-results').style.display = 'none';
-        document.getElementById('main-form').classList.remove('hidden');
-        
-        document.getElementById('name').value = m.name || "";
-        document.getElementById('office').value = m.office || "";
-        document.getElementById('start').value = m.start || "";
-        document.getElementById('end').value = m.end || "";
-        document.getElementById('pos').value = m.pos || "";
-        document.getElementById('country').value = m.country || "";
-        document.getElementById('currPos').value = m.currPos || "";
-        document.getElementById('topic').value = m.topic || "";
-        document.getElementById('email').value = m.email || "";
-        document.getElementById('linkedin').value = m.linkedin || "";
-        document.getElementById('scholar').value = m.scholar || "";
-        document.getElementById('web').value = m.web || "";
-        document.getElementById('other').value = m.other || "";
-        document.getElementById('current-photo').src = m.photoUrl || "https://via.placeholder.com/150";
-        
-        document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
+    const payload = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
+    const data = sheet.getDataRange().getValues();
+    
+    // Find the row by ID (Column A)
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0].toString() === payload.id.toString()) { 
+        rowIndex = i + 1; 
+        break; 
+      }
     }
 
-    function previewPhoto() {
-        const file = document.getElementById('photo-upload').files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => document.getElementById('current-photo').src = e.target.result;
-            reader.readAsDataURL(file);
-        }
+    if (rowIndex === -1) throw new Error("User ID " + payload.id + " not found.");
+
+    // Prepare Updates for Columns B through N (Columns 2-14)
+    // Force to String to avoid data-type mismatch errors in Sheets
+    const updates = [
+      payload.name, payload.office, payload.start, payload.end, payload.pos,
+      payload.country, payload.currPos, payload.topic, payload.email,
+      payload.linkedin, payload.scholar, payload.web, payload.other
+    ].map(val => val === undefined ? "" : String(val));
+    
+    // Write data to the sheet
+    sheet.getRange(rowIndex, 2, 1, updates.length).setValues([updates]);
+
+    // Handle Photo Upload (Column O and P)
+    if (payload.photoData) {
+      const folder = DriveApp.getFolderById(CONFIG.PHOTO_FOLDER_ID);
+      
+      // Save new file
+      const blob = Utilities.newBlob(Utilities.base64Decode(payload.photoData), "image/jpeg", payload.name + "_profile.jpg");
+      const file = folder.createFile(blob);
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      
+      const fileId = file.getId();
+      const directLink = "https://drive.google.com/uc?export=view&id=" + fileId;
+      
+      // Update spreadsheet with file ID and URL
+      sheet.getRange(rowIndex, 15).setValue(fileId);
+      sheet.getRange(rowIndex, 16).setValue(directLink);
     }
 
-    async function handleSubmit() {
-        const btn = document.getElementById('save-btn');
-        const fileInput = document.getElementById('photo-upload');
-        btn.disabled = true;
-        btn.innerText = "Syncing with MYlab Cloud...";
+    return createResponse("Success", "text");
 
-        let photoBase64 = null;
-        if (fileInput.files.length > 0) {
-            photoBase64 = await new Promise(r => {
-                const reader = new FileReader();
-                reader.onload = () => r(reader.result.split(',')[1]);
-                reader.readAsDataURL(fileInput.files[0]);
-            });
-        }
+  } catch (err) {
+    console.error("POST Error: " + err.toString());
+    return createResponse("Error: " + err.toString(), "text");
+  }
+}
 
-        const payload = {
-            id: selectedId,
-            name: document.getElementById('name').value,
-            office: document.getElementById('office').value,
-            start: document.getElementById('start').value,
-            end: document.getElementById('end').value,
-            pos: document.getElementById('pos').value,
-            country: document.getElementById('country').value,
-            currPos: document.getElementById('currPos').value,
-            topic: document.getElementById('topic').value,
-            email: document.getElementById('email').value,
-            linkedin: document.getElementById('linkedin').value,
-            scholar: document.getElementById('scholar').value,
-            web: document.getElementById('web').value,
-            other: document.getElementById('other').value,
-            photoData: photoBase64
-        };
-
-        try {
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify(payload) 
-            });
-            alert("Success! Your profile has been sent for synchronization.");
-            btn.innerText = "Update Successful";
-            setTimeout(() => { 
-                btn.disabled = false; 
-                btn.innerText = "Save and Sync Changes";
-            }, 3000);
-        } catch (e) {
-            alert("Error: Connection lost. Please try again.");
-            btn.disabled = false;
-            btn.innerText = "Save and Sync Changes";
-        }
-    }
-
-    // Close results when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-container')) {
-            document.getElementById('search-results').style.display = 'none';
-        }
-    });
-
-    init();
-</script>
-</body>
-</html>
+/**
+ * Helper to format responses correctly
+ */
+function createResponse(content, type) {
+  const output = ContentService.createTextOutput(content);
+  if (type === "json") {
+    output.setMimeType(ContentService.MimeType.JSON);
+  } else {
+    output.setMimeType(ContentService.MimeType.TEXT);
+  }
+  return output;
+}
