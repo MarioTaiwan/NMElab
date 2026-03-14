@@ -18,7 +18,7 @@
         .hidden { display: none !important; }
 
         /* ========================================== */
-        /* TEAM UPDATE v3.3 CSS                       */
+        /* NMElab TEAM UPDATE v3.3 CSS                */
         /* ========================================== */
         .card { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 750px; border-top: 8px solid var(--primary); box-sizing: border-box; position: relative; margin-bottom: 40px; }
         h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 1.8rem; text-align: center; }
@@ -26,20 +26,19 @@
 
         .search-container { position: relative; margin-bottom: 25px; }
         #name-search { width: 100%; padding: 12px 15px; border: 2px solid #cfd8dc; border-radius: 8px; font-size: 16px; box-sizing: border-box; transition: 0.2s; }
-        #name-search:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 8px rgba(30,136,229,0.2); }
         
         #search-results { position: absolute; width: 100%; max-height: 200px; background: white; border: 1px solid #cfd8dc; border-radius: 8px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
         .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
         .result-item:hover { background: #f1f8ff; color: var(--accent); }
 
-        /* Needs Update List */
-        #needs-update-container { margin-top: 10px; border: 1px solid #e1e4e8; border-radius: 8px; background: #fafbfc; overflow: hidden; }
-        .needs-update-header { background: #f1f3f5; padding: 10px 15px; font-size: 0.8rem; font-weight: bold; color: #546e7a; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; }
-        .update-row { padding: 12px 15px; background: white; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
-        .update-row:last-child { border-bottom: none; }
+        /* Action Required List */
+        #needs-update-section { margin-bottom: 20px; width: 100%; }
+        .needs-update-header { background: #f1f3f5; padding: 10px 15px; font-size: 0.8rem; font-weight: bold; color: #546e7a; border-radius: 8px 8px 0 0; border: 1px solid #e1e4e8; display: flex; justify-content: space-between; }
+        #needs-update-container { border: 1px solid #e1e4e8; border-top: none; border-radius: 0 0 8px 8px; background: white; max-height: 200px; overflow-y: auto; }
+        .update-row { padding: 10px 15px; border-bottom: 1px solid #f0f2f5; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .update-row:hover { background: #fffde7; }
-        .update-row .member-name { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
-        .update-row .status-tag { font-size: 0.7rem; background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .member-name { font-weight: 600; color: var(--primary); font-size: 0.9rem; }
+        .status-tag { font-size: 0.7rem; background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
 
         .section-title { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin: 25px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 5px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
@@ -52,28 +51,33 @@
         #current-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); background: #eee; }
         
         .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 30px; transition: 0.2s; }
-        .btn-save:hover { background: #0d1440; }
-        .btn-save:disabled { background: #90a4ae; cursor: not-allowed; }
-
         .btn-continue { background: var(--success); color: white; border: none; padding: 16px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; font-size: 1.1rem; margin-top: 15px; transition: 0.2s; }
-        .btn-continue:hover { background: #1b5e20; }
-
-        #loading-status { text-align: center; font-weight: bold; padding: 10px; color: var(--primary); }
 
         /* ========================================== */
-        /* CLEANUP v2.0 STABLE CSS                    */
+        /* NMElab CLEANUP v2.0 CSS                    */
         /* ========================================== */
         #sidebar { width: 280px; background: #fff; border-right: 1px solid #dcdfe3; overflow-y: auto; padding: 20px; flex-shrink: 0; }
-        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; cursor: pointer; text-decoration: underline; }
-        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
+        #sidebar h2 { margin-top: 0; color: var(--primary); font-size: 1.1rem; border-bottom: 3px solid var(--primary); padding-bottom: 8px; cursor: pointer; }
+        .thumb-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 12px; cursor: pointer; position: relative; overflow: hidden; }
+        .thumb-card.processed { border: 3px solid var(--success) !important; }
+        .thumb-card.processed::after { content: '✓ DONE'; position: absolute; top: 5px; right: 5px; background: var(--success); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        .thumb-card.is-unclear { border: 3px solid var(--unclear) !important; }
+        .thumb-card.is-unclear::after { content: '? UNCLEAR'; position: absolute; top: 5px; right: 5px; background: var(--unclear); color: white; font-size: 9px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
         .thumb-card img { width: 100%; height: 100px; object-fit: cover; display: block; }
         .thumb-info { padding: 6px; font-size: 12px; text-align: center; font-weight: bold; color: #455a64; background: #fafafa; }
+
         #main-container { flex-grow: 1; display: flex; flex-direction: column; padding: 15px; overflow: hidden; background: #f0f2f5; }
         #status-bar { padding: 8px 20px; border-radius: 20px; background: #fff; border: 1px solid #cfd8dc; font-size: 13px; font-weight: 600; align-self: center; margin-bottom: 10px; }
         .saving { color: #f57c00; animation: pulse 1.5s infinite; }
+        
+        #workspace { display: flex; gap: 20px; justify-content: center; align-items: flex-start; height: 90vh; }
+        #center-col { display: flex; flex-direction: column; gap: 15px; max-width: 65%; }
         #canvas-box { background: white; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         #current-img { width: 100%; max-height: 60vh; display: block; border-radius: 4px; }
-        
+        #reference-panel { display: flex; gap: 10px; justify-content: center; }
+        .ref-thumb { width: 180px; height: 120px; object-fit: cover; border-radius: 6px; border: 2px solid #fff; cursor: zoom-in; }
+        #input-panel { width: 320px; background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #cfd8dc; }
+
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
@@ -81,19 +85,19 @@
 
     <div id="team-app">
         <div class="card">
-            <div class="version-badge">v3.3 Stable</div>
+            <div class="version-badge">v3.4 Stable</div>
             <h1>NMElab Team Update</h1>
             <div id="loading-status">📡 Initializing connection...</div>
 
             <div class="search-container">
-                <label>Access a nmelab member profile </label>
+                <label>Find Your Profile</label>
                 <input type="text" id="name-search" placeholder="Connecting to lab records..." autocomplete="off" oninput="filterNames()" disabled>
                 <div id="search-results"></div>
             </div>
 
             <div id="needs-update-section" class="hidden">
                 <div class="needs-update-header">
-                    <span>Please help us with information on other members: </span>
+                    <span>ACTION REQUIRED: MISSING EMAIL</span>
                     <span id="missing-count">0 profiles</span>
                 </div>
                 <div id="needs-update-container"></div>
@@ -146,15 +150,29 @@
 
     <div id="cleanup-app">
         <div id="sidebar">
-            <h2 onclick="switchToTeam()">← return to personal info</h2>
+            <h2 onclick="switchToTeam()">← Return to Profile</h2>
             <div id="thumb-list"></div>
         </div>
 
         <div id="main-container">
             <div id="status-bar">Syncing with Lab Records...</div>
             <div id="workspace">
-                <div id="center-col" style="display:none;">
+                <div id="intro-overlay" style="text-align:center; padding-top:100px;">
+                    <h1>NMElab Gallery</h1>
+                    <p id="loading-msg">← Select a sample from the sidebar to begin.</p>
+                </div>
+                <div id="center-col" class="hidden">
                     <div id="canvas-box"></div>
+                    <div id="reference-panel"></div>
+                </div>
+                <div id="input-panel" class="hidden">
+                    <h3 style="margin-top:0; color:var(--primary);">Sample Status</h3>
+                    <div class="radio-group">
+                        <label class="radio-option" style="display:block; padding:5px;"><input type="radio" name="status" onclick="saveCleanupStatus('Toss everything')"> Toss everything.</label>
+                        <label class="radio-option" style="display:block; padding:5px;"><input type="radio" name="status" onclick="saveCleanupStatus('Keep some things')"> Keep some things.</label>
+                        <label class="radio-option" style="display:block; padding:5px;"><input type="radio" name="status" onclick="saveCleanupStatus('Potentially useful')"> Might be useful.</label>
+                        <label class="radio-option" style="display:block; padding:5px;"><input type="radio" name="status" onclick="saveCleanupStatus('Unknown/Not mine')"> I don't know this.</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,38 +180,36 @@
 
     <script src="./annotorious.min.js"></script>
     <script>
-        const TEAM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
+        const TEAM_URL = 'https://script.google.com/macros/s/AKfycbxziifOyFuyR05SdNaadrDys5HkkU2QtdDF-Qc5dqZmGDA6Qz8bS0zmJQUSuOkOStpV/exec';
+        const CLEANUP_URL = 'https://script.google.com/macros/s/AKfycbzmUOcFf_etsl0jDxH8hAQT01_mazbcO03WvfNNhlWB9XHmbWDfb5wSm24gwslG0Pnt/exec';
+        const IMG_FOLDER = './images';
+        
         let teamData = [];
-        let selectedId = null;
+        let cleanupCache = {};
+        let anno = null;
+        let currentImageId = null;
 
+        // --- TEAM LOGIC ---
         async function initTeam() {
             try {
-                const res = await fetch(`${TEAM_SCRIPT_URL}?action=getList`);
+                const res = await fetch(`${TEAM_URL}?action=getList`);
                 teamData = await res.json();
                 document.getElementById('loading-status').innerText = "✅ Database Connected";
-                
                 const searchInput = document.getElementById('name-search');
-                searchInput.placeholder = `Search among ${teamData.length} members...`;
                 searchInput.disabled = false;
-
+                searchInput.placeholder = `Search among ${teamData.length} members...`;
                 renderNeedsUpdateList();
-            } catch (e) {
-                document.getElementById('loading-status').innerText = "❌ Connection error.";
-            }
+            } catch (e) { document.getElementById('loading-status').innerText = "❌ Connection error."; }
         }
 
         function renderNeedsUpdateList() {
             const container = document.getElementById('needs-update-container');
             const section = document.getElementById('needs-update-section');
-            const missingCount = document.getElementById('missing-count');
-            
             const missing = teamData.filter(m => !m.email || m.email.trim() === "");
-            
             if (missing.length > 0) {
                 section.classList.remove('hidden');
-                missingCount.innerText = `${missing.length} profiles`;
+                document.getElementById('missing-count').innerText = `${missing.length} profiles`;
                 container.innerHTML = '';
-                
                 missing.forEach(m => {
                     const row = document.createElement('div');
                     row.className = 'update-row';
@@ -201,8 +217,6 @@
                     row.onclick = () => selectMember(m);
                     container.appendChild(row);
                 });
-            } else {
-                section.classList.add('hidden');
             }
         }
 
@@ -223,18 +237,15 @@
         }
 
         function selectMember(m) {
-            selectedId = m.id;
             document.getElementById('name-search').value = m.name;
             document.getElementById('search-results').style.display = 'none';
             document.getElementById('main-form').classList.remove('hidden');
-            document.getElementById('needs-update-section').classList.add('hidden'); // Hide list once selection is made
-
-            const fields = ['name','office','start','end','pos','country','currPos','topic','email','linkedin','scholar','web','other'];
-            fields.forEach(field => { document.getElementById(field).value = m[field] || ""; });
-            
-            const photoEl = document.getElementById('current-photo');
-            photoEl.src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
-            document.getElementById('main-form').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('needs-update-section').classList.add('hidden');
+            selectedId = m.id;
+            ['name','office','start','end','pos','country','currPos','topic','email','linkedin','scholar','web','other'].forEach(f => {
+                document.getElementById(f).value = m[f] || "";
+            });
+            document.getElementById('current-photo').src = (m.photoUrl && m.photoUrl.startsWith('http')) ? m.photoUrl : "https://via.placeholder.com/150";
         }
 
         function previewPhoto() {
@@ -248,39 +259,110 @@
 
         async function handleSubmit() {
             const btn = document.getElementById('save-btn');
-            const fileInput = document.getElementById('photo-upload');
-            btn.disabled = true;
-            btn.innerText = "Syncing with NMElab Cloud...";
-            
-            let photoBase64 = null;
-            if (fileInput.files.length > 0) {
-                photoBase64 = await new Promise(r => {
-                    const reader = new FileReader();
-                    reader.onload = () => r(reader.result.split(',')[1]);
-                    reader.readAsDataURL(fileInput.files[0]);
-                });
-            }
-            
-            const payload = { id: selectedId, photoData: photoBase64 };
+            btn.disabled = true; btn.innerText = "Syncing...";
+            const payload = { id: selectedId };
             ['name','office','start','end','pos','country','currPos','topic','email','linkedin','scholar','web','other'].forEach(f => payload[f] = document.getElementById(f).value);
-            
             try {
-                await fetch(TEAM_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                alert("Success! Update queued.");
-                btn.innerText = "Update Successful";
-                setTimeout(() => { btn.disabled = false; btn.innerText = "Save and Sync Changes"; }, 3000);
-                initTeam(); // Refresh the "Needs Update" list
-            } catch (e) { alert("Connection error."); btn.disabled = false; }
+                await fetch(TEAM_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                alert("Success!");
+                btn.innerText = "Save and Sync Changes"; btn.disabled = false;
+            } catch (e) { alert("Error."); btn.disabled = false; }
         }
 
+        // --- CLEANUP LOGIC ---
         function switchToCleanup() {
             document.getElementById('team-app').style.display = 'none';
             document.getElementById('cleanup-app').style.display = 'flex';
+            initCleanupGallery();
         }
 
         function switchToTeam() {
             document.getElementById('cleanup-app').style.display = 'none';
             document.getElementById('team-app').style.display = 'flex';
+        }
+
+        async function initCleanupGallery() {
+            const sb = document.getElementById('status-bar');
+            sb.innerText = "Loading Gallery...";
+            try {
+                const res = await fetch(`${CLEANUP_URL}?imageId=ALL_SAMPLES`);
+                const allData = await res.json();
+                allData.forEach(d => {
+                    if (!cleanupCache[d.imageId]) cleanupCache[d.imageId] = [];
+                    cleanupCache[d.imageId].push(d);
+                });
+                renderCleanupCards();
+                sb.innerText = "Gallery Ready";
+            } catch (e) { renderCleanupCards(); sb.innerText = "Offline Mode"; }
+        }
+
+        function renderCleanupCards() {
+            const list = document.getElementById('thumb-list');
+            list.innerHTML = '';
+            for (let i = 1; i <= 57; i++) {
+                const id = `Sample ${i}`;
+                const card = document.createElement('div');
+                card.id = `card-${i}`;
+                const data = cleanupCache[id] || [];
+                const isDone = data.some(d => d.type === "StatusUpdate" && (d.body === "Toss everything" || d.body === "Keep some things"));
+                const isUnclear = !isDone && data.some(d => d.type === "StatusUpdate");
+                card.className = 'thumb-card' + (isDone ? ' processed' : isUnclear ? ' is-unclear' : '');
+                card.innerHTML = `<img src="${IMG_FOLDER}/${i}.jpg" loading="lazy" onerror="this.src='${IMG_FOLDER}/${i}a.jpg'"><div class="thumb-info">${id}</div>`;
+                card.onclick = () => selectCleanupImg(id, i);
+                list.appendChild(card);
+            }
+        }
+
+        function selectCleanupImg(id, index) {
+            currentImageId = id;
+            document.getElementById('intro-overlay').classList.add('hidden');
+            document.getElementById('center-col').classList.remove('hidden');
+            document.getElementById('input-panel').classList.remove('hidden');
+            if (anno) { anno.destroy(); anno = null; }
+            const canvasBox = document.getElementById('canvas-box');
+            canvasBox.innerHTML = '';
+            const img = document.createElement('img');
+            img.id = "current-img";
+            canvasBox.appendChild(img);
+            img.onload = () => {
+                anno = Annotorious.init({ image: img, widgets: ['COMMENT'] });
+                const local = cleanupCache[id] || [];
+                anno.setAnnotations(local.filter(d => d.type !== "StatusUpdate"));
+                anno.on('createAnnotation', (a) => syncCleanup(id, a));
+            };
+            img.src = `${IMG_FOLDER}/${index}.jpg`;
+            const refPanel = document.getElementById('reference-panel');
+            refPanel.innerHTML = '';
+            [`${index}a.jpg`, `${index}b.jpg`].forEach(file => {
+                const r = document.createElement('img'); r.src = `${IMG_FOLDER}/${file}`; r.className = 'ref-thumb';
+                r.onerror = () => r.remove(); r.onclick = () => window.open(r.src); refPanel.appendChild(r);
+            });
+        }
+
+        async function syncCleanup(id, content) {
+            const sb = document.getElementById('status-bar');
+            sb.classList.add("saving");
+            if (!cleanupCache[id]) cleanupCache[id] = [];
+            cleanupCache[id].push(content);
+            const p = new URLSearchParams(); p.append('imageId', id); p.append('annotation', JSON.stringify(content));
+            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', body: p.toString() });
+            sb.classList.remove("saving");
+        }
+
+        async function saveCleanupStatus(label) {
+            const sb = document.getElementById('status-bar');
+            sb.classList.add("saving");
+            const match = currentImageId.match(/\d+/);
+            if(match) {
+                const c = document.getElementById(`card-${match[0]}`);
+                c.classList.remove('processed', 'is-unclear');
+                c.classList.add((label.includes("everything") || label.includes("some")) ? 'processed' : 'is-unclear');
+            }
+            const update = {type: "StatusUpdate", body: label, imageId: currentImageId};
+            cleanupCache[currentImageId].push(update);
+            const p = new URLSearchParams(); p.append('imageId', currentImageId); p.append('annotation', JSON.stringify(update));
+            await fetch(CLEANUP_URL, { method: 'POST', mode: 'no-cors', body: p.toString() });
+            sb.classList.remove("saving");
         }
 
         document.addEventListener('click', (e) => {
