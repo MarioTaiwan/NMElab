@@ -1,0 +1,8 @@
+﻿Uninstalling assembly 'C:\Program Files (x86)\Atik Cameras\ArtemisHscService\ArtemisHSCServiceMonitor.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\Program Files (x86)\Atik Cameras\ArtemisHscService\ArtemisHSCServiceMonitor.InstallLog
+   assemblypath = C:\Program Files (x86)\Atik Cameras\ArtemisHscService\ArtemisHSCServiceMonitor.exe
+Removing EventLog source ArtemisHSCServiceMonitor.
+Service ArtemisHSCServiceMonitor is being removed from the system...
+Service ArtemisHSCServiceMonitor was successfully removed from the system.
