@@ -15,6 +15,7 @@ Surprisingly, I found another galvo scanner in the lab after cleanup and that on
 The galvo can be controlled in the NanoSpectrum version 1.8 but I haven't found the control in 1.7.2.3
 The CCD is an Artemis and using a patch I got it to work in 1.7.2.3 (haven't tried newer versions).
 The camera is not original and doesn't seem to work with 1.8 but we can just use the windows camera app to operate it.
+V 2.4.6.1 https://drive.google.com/file/d/1fa9F_hmNuL5X0wGn2ZTkeA7I_voyYRny/view?usp=sharing 
 
 # Beam path
 the system has a scan lens that may be misaligned but centering is hard because the beam is moving with the galvo rotation.
