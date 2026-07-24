@@ -5,6 +5,7 @@ Ed donated a camera: [Celestron – 5MP CMOS Digital USB Microscope Imager – D
 # CCD: 
 The CCD was broken (image sensor was deemed broken) and I shipped it as RMA 19212 to ATIK (the invoice is attached)[Invoice 382.pdf](https://github.com/user-attachments/files/29605063/Invoice.382.pdf)
 We can use the Artemis software to get a picture of the whole CCD.
+https://drive.google.com/file/d/1wqvl19h1vpbV7fIrmyoQhAenMcg4qWQK/view?usp=sharing
 
 # Galvo scanner
 I had problems with the galvo scanner that the +15V signal was intermittant (sometimes working sometimes not)
